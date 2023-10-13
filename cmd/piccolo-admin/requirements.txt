@@ -1,0 +1,2 @@
+piccolo[all]
+piccolo-admin
