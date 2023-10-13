@@ -3,6 +3,7 @@ package users
 import (
 	"xavagebb/api"
 	"xavagebb/routes/users/endpoints/check_auth"
+	"xavagebb/routes/users/endpoints/get_current_game_user"
 	"xavagebb/routes/users/endpoints/get_user"
 	"xavagebb/routes/users/endpoints/join_game"
 	"xavagebb/routes/users/endpoints/login_user"
@@ -34,6 +35,20 @@ func (b Router) Routes(r *chi.Mux) {
 		Method:  uapi.GET,
 		Docs:    get_user.Docs,
 		Handler: get_user.Route,
+	}.Route(r)
+
+	uapi.Route{
+		Pattern: "/users/{userId}/current_game_user",
+		OpId:    "get_current_game_user",
+		Method:  uapi.GET,
+		Docs:    get_current_game_user.Docs,
+		Handler: get_current_game_user.Route,
+		Auth: []uapi.AuthType{
+			{
+				URLVar: "userId",
+				Type:   api.TargetTypeUser,
+			},
+		},
 	}.Route(r)
 
 	uapi.Route{

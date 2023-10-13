@@ -20,7 +20,7 @@ type GameJoinResponse struct {
 	New bool   `json:"new" description:"Whether the game join is new"`
 }
 
-type GameJoin struct {
+type GameUser struct {
 	ID        string    `db:"id" json:"id" description:"The ID of the game join"`
 	UserID    string    `db:"user_id" json:"user_id" description:"The ID of the user"`
 	GameID    string    `db:"game_id" json:"game_id" description:"The ID of the game"`
