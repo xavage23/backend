@@ -106,6 +106,7 @@ class Games(Table, tablename="games"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+        help_text="Balance is in cents, not dollars",
     )
 
 
