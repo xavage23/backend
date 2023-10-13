@@ -1,0 +1,9 @@
+packages:
+  - path: "xavagebb/types"
+    output_path: "../frontend/src/lib/generated"
+    frontmatter: 
+    type_mappings:
+      time.Time: "string /* RFC3339 */"
+      pgtype.Text: "string | null /* nullable */"
+      pgtype.UUID: "string /* uuid */"
+      pgtype.Timestamptz: "string | null /* RFC3339, nullable */"
