@@ -46,6 +46,16 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
+    description = Text(
+        default="",
+        null=False,
+        primary_key=False,
+        unique=True,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
     passphrase = Text(
         default="",
         null=False,
@@ -69,16 +79,6 @@ class Games(Table, tablename="games"):
     created_at = Timestamptz(
         default=TimestamptzNow(),
         null=False,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-    game_started = Timestamptz(
-        default=TimestamptzNow(),
-        null=True,
         primary_key=False,
         unique=False,
         index=False,

@@ -17,6 +17,9 @@ import (
 var (
 	gameUserColsArr = db.GetCols(types.GameUser{})
 	gameUserCols    = strings.Join(gameUserColsArr, ", ")
+
+	gameColsArr = db.GetCols(types.Game{})
+	gameCols    = strings.Join(gameColsArr, ", ")
 )
 
 func Docs() *docs.Doc {
@@ -61,6 +64,26 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		state.Logger.Error(err)
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
+
+	gameRow, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1", gu.GameID)
+
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	game, err := pgx.CollectOneRow(gameRow, pgx.RowToStructByName[types.Game])
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uapi.DefaultResponse(http.StatusNotFound)
+	}
+
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	gu.Game = game
 
 	return uapi.HttpResponse{
 		Json: gu,

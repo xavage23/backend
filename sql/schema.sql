@@ -13,10 +13,10 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS games (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- needed by piccolo
     code TEXT NOT NULL UNIQUE CHECK (code <> ''), -- Game code
+    description TEXT NOT NULL UNIQUE CHECK (description <> ''), -- Game description
     passphrase TEXT NOT NULL UNIQUE CHECK (passphrase <> ''), -- Game passphrase
     enabled BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    game_started TIMESTAMPTZ, -- If this value is unset, the game has not yet started
     current_price TEXT NOT NULL DEFAULT 'start', -- The current price of the stock, 'start' means start price and 'end' means end price
     initial_balance BIGINT NOT NULL -- The initial balance of a user in the game in cents
 );
