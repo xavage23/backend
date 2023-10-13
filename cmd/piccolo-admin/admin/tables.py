@@ -96,6 +96,7 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
         choices=GameCurrentPrice,
+        help_text="Whether the current price is the start or end price",
     )
     initial_balance = Integer(
         default=0,
@@ -489,6 +490,7 @@ class Stock(Table, tablename="stock"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+        help_text="Price is in cents, not dollars"
     )
     end_price = Integer(
         default=0,
@@ -499,6 +501,7 @@ class Stock(Table, tablename="stock"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+        help_text="Price is in cents, not dollars",
     )
     created_at = Timestamptz(
         default=TimestamptzNow(),
@@ -679,6 +682,7 @@ class UserTransaction(Table, tablename="user_transaction"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+        price="Price is in cents, not dollars"
     )
     amount = Integer(
         default=0,
