@@ -21,12 +21,13 @@ type GameJoinResponse struct {
 }
 
 type Game struct {
-	ID           string    `db:"id" json:"id" description:"The ID of the game"`
-	Code         string    `db:"code" json:"code" description:"The code of the game"`
-	Enabled      bool      `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
-	Description  string    `db:"description" json:"description" description:"The description of the game"`
-	CreatedAt    time.Time `db:"created_at" json:"created_at" description:"The time the game was created"`
-	CurrentPrice string    `db:"current_price" json:"current_price" description:"The current price of the game"`
+	ID             string    `db:"id" json:"id" description:"The ID of the game"`
+	Code           string    `db:"code" json:"code" description:"The code of the game"`
+	Enabled        bool      `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
+	Description    string    `db:"description" json:"description" description:"The description of the game"`
+	CreatedAt      time.Time `db:"created_at" json:"created_at" description:"The time the game was created"`
+	CurrentPrice   string    `db:"current_price" json:"current_price" description:"The current price of the game"`
+	InitialBalance int64     `db:"initial_balance" json:"initial_balance" description:"The initial balance of the game"`
 }
 
 type GameUser struct {
