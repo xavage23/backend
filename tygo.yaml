@@ -1,6 +1,6 @@
 packages:
   - path: "xavagebb/types"
-    output_path: "../frontend/src/lib/generated"
+    output_path: ".generated"
     frontmatter: 
     type_mappings:
       time.Time: "string /* RFC3339 */"
