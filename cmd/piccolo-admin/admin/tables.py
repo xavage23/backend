@@ -3,7 +3,7 @@ from piccolo.columns.base import OnDelete
 from piccolo.columns.base import OnUpdate
 from piccolo.columns.column_types import Boolean
 from piccolo.columns.column_types import ForeignKey
-from piccolo.columns.column_types import Integer
+from piccolo.columns.column_types import BigInt
 from piccolo.columns.column_types import Serial
 from piccolo.columns.column_types import Text
 from piccolo.columns.column_types import Timestamp
@@ -98,7 +98,7 @@ class Games(Table, tablename="games"):
         choices=GameCurrentPrice,
         help_text="Whether the current price is the start or end price",
     )
-    initial_balance = Integer(
+    initial_balance = BigInt(
         default=0,
         null=False,
         primary_key=False,
@@ -359,7 +359,7 @@ class Sessions(Table, tablename="sessions"):
         db_column_name=None,
         secret=False,
     )
-    user_id = Integer(
+    user_id = BigInt(
         default=0,
         null=False,
         primary_key=False,
@@ -481,7 +481,7 @@ class Stock(Table, tablename="stock"):
         db_column_name=None,
         secret=False,
     )
-    start_price = Integer(
+    start_price = BigInt(
         default=0,
         null=False,
         primary_key=False,
@@ -492,7 +492,7 @@ class Stock(Table, tablename="stock"):
         secret=False,
         help_text="Price is in cents, not dollars"
     )
-    end_price = Integer(
+    end_price = BigInt(
         default=0,
         null=False,
         primary_key=False,
@@ -565,6 +565,16 @@ class GameAllowedUsers(Table, tablename="game_allowed_users"):
 
 
 class GameUser(Table, tablename="game_user"):
+    id = UUID(
+        default=UUID4(),
+        null=False,
+        primary_key=True,
+        unique=False,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
     user_id = ForeignKey(
         references=Users,
         on_delete=OnDelete.cascade,
@@ -591,7 +601,7 @@ class GameUser(Table, tablename="game_user"):
         db_column_name=None,
         secret=False,
     )
-    balance = Integer(
+    balance = BigInt(
         default=0,
         null=False,
         primary_key=False,
@@ -600,6 +610,7 @@ class GameUser(Table, tablename="game_user"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+        help_text="Balance is in cents, not dollars"
     )
     created_at = Timestamptz(
         default=TimestamptzNow(),
@@ -611,17 +622,6 @@ class GameUser(Table, tablename="game_user"):
         db_column_name=None,
         secret=False,
     )
-    id = UUID(
-        default=UUID4(),
-        null=False,
-        primary_key=True,
-        unique=False,
-        index=True,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-
 
 class UserTransaction(Table, tablename="user_transaction"):
     id = UUID(
@@ -673,7 +673,7 @@ class UserTransaction(Table, tablename="user_transaction"):
         db_column_name=None,
         secret=False,
     )
-    stock_price = Integer(
+    stock_price = BigInt(
         default=0,
         null=False,
         primary_key=False,
@@ -684,7 +684,7 @@ class UserTransaction(Table, tablename="user_transaction"):
         secret=False,
         price="Price is in cents, not dollars"
     )
-    amount = Integer(
+    amount = BigInt(
         default=0,
         null=False,
         primary_key=False,

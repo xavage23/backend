@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS games (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     game_started TIMESTAMPTZ, -- If this value is unset, the game has not yet started
     current_price TEXT NOT NULL DEFAULT 'start', -- The current price of the stock, 'start' means start price and 'end' means end price
-    initial_balance INTEGER NOT NULL -- The initial balance of a user in the game in cents
+    initial_balance BIGINT NOT NULL -- The initial balance of a user in the game in cents
 );
 
 CREATE TABLE IF NOT EXISTS game_allowed_users (
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS game_user (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- Game User token
     user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    balance INTEGER NOT NULL, -- The current balance of the user in cents
+    balance BIGINT NOT NULL, -- The current balance of the user in cents
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id, game_id)
 );
@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS stock (
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
     ticker TEXT NOT NULL, -- AAPL etc
     company_name TEXT NOT NULL,
-    start_price INTEGER NOT NULL, -- The price of the stock at the start of the game in cents
-    end_price INTEGER NOT NULL, -- The price of the stock at the end of the game in cents
+    start_price BIGINT NOT NULL, -- The price of the stock at the start of the game in cents
+    end_price BIGINT NOT NULL, -- The price of the stock at the end of the game in cents
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS user_transaction (
     user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
     stock_id UUID NOT NULL REFERENCES stock (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    stock_price INTEGER NOT NULL, -- The price of the stock at the time of the transaction in cents
-    amount INTEGER NOT NULL, -- The amount of stocks bought/sold
+    stock_price BIGINT NOT NULL, -- The price of the stock at the time of the transaction in cents
+    amount BIGINT NOT NULL, -- The amount of stocks bought/sold
     action TEXT NOT NULL, -- BUY or SELL
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
