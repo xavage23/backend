@@ -1,6 +1,7 @@
 package users
 
 import (
+	"xavagebb/routes/users/endpoints/get_user"
 	"xavagebb/routes/users/endpoints/login_user"
 
 	"github.com/go-chi/chi/v5"
@@ -22,5 +23,13 @@ func (b Router) Routes(r *chi.Mux) {
 		Method:  uapi.PUT,
 		Docs:    login_user.Docs,
 		Handler: login_user.Route,
+	}.Route(r)
+
+	uapi.Route{
+		Pattern: "/users/{userId}",
+		OpId:    "get_user",
+		Method:  uapi.GET,
+		Docs:    get_user.Docs,
+		Handler: get_user.Route,
 	}.Route(r)
 }

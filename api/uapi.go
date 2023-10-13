@@ -2,6 +2,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"xavagebb/constants"
 	"xavagebb/state"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/infinitybotlist/eureka/uapi"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/exp/slices"
 )
@@ -66,18 +68,16 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 			}
 
 			if req.Header.Get("X-GameUser-ID") != "" {
-				// Delete all game users older than 1 hour
-				_, err := state.Pool.Exec(state.Context, "DELETE FROM game_users WHERE created_at < NOW() - INTERVAL '1 hour'")
-				if err != nil {
+				var count int64
+
+				err = state.Pool.QueryRow(state.Context, "SELECT COUNT(*) FROM game_users WHERE id = $1", req.Header.Get("X-GameUser-ID")).Scan(&count)
+
+				if errors.Is(err, pgx.ErrNoRows) {
 					return uapi.AuthData{}, uapi.HttpResponse{
-						Status: http.StatusInternalServerError,
-						Json:   types.ApiError{Message: "Failed to delete old game users: " + err.Error()},
+						Status: http.StatusForbidden,
+						Json:   types.ApiError{Message: "This game user ID does not exist [no count rows]!"},
 					}, false
 				}
-
-				var createdAt pgtype.Timestamptz
-
-				err = state.Pool.QueryRow(state.Context, "SELECT created_at FROM game_users WHERE id = $1", req.Header.Get("X-GameUser-ID")).Scan(&createdAt)
 
 				if err != nil {
 					return uapi.AuthData{}, uapi.HttpResponse{
@@ -86,10 +86,10 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 					}, false
 				}
 
-				if !createdAt.Valid {
+				if count == 0 {
 					return uapi.AuthData{}, uapi.HttpResponse{
 						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "This game user ID does not exist [created_at!"},
+						Json:   types.ApiError{Message: "This game user ID does not exist [count = 0]!"},
 					}, false
 				}
 			} else {

@@ -70,9 +70,10 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	// Fetch hashed password and token given user id
 	var userId string
 	var hashedPw string
+	var enabled bool
 	var token string
 
-	err = state.Pool.QueryRow(d.Context, "SELECT id, password, token FROM users WHERE username = $1", req.Username).Scan(&userId, &hashedPw, &token)
+	err = state.Pool.QueryRow(d.Context, "SELECT id, password, enabled, token FROM users WHERE username = $1", req.Username).Scan(&userId, &hashedPw, &enabled, &token)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{
@@ -111,6 +112,15 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				Message: "Incorrect user id or password",
 			},
 			Status: http.StatusUnauthorized,
+		}
+	}
+
+	if !enabled {
+		return uapi.HttpResponse{
+			Json: types.ApiError{
+				Message: "Your account is currently disabled",
+			},
+			Status: http.StatusForbidden,
 		}
 	}
 
