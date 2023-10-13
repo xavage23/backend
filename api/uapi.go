@@ -57,20 +57,29 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 			var id pgtype.Text
 			var enabled bool
 
-			err := state.Pool.QueryRow(state.Context, "SELECT user_id, enabled FROM users WHERE token = $1", authHeader, "User ").Scan(&id, &enabled)
+			err := state.Pool.QueryRow(state.Context, "SELECT id, enabled FROM users WHERE token = $1", authHeader).Scan(&id, &enabled)
 
 			if err != nil {
+				state.Logger.Error(err)
 				continue
 			}
 
 			if !id.Valid {
+				state.Logger.Error("Invalid user ID: ", id.String)
 				continue
 			}
 
-			if req.Header.Get("X-GameUser-ID") != "" {
-				var count int64
+			if !enabled {
+				return uapi.AuthData{}, uapi.HttpResponse{
+					Status: http.StatusForbidden,
+					Json:   types.ApiError{Message: "This user account is not enabled yet!"},
+				}, false
+			}
 
-				err = state.Pool.QueryRow(state.Context, "SELECT COUNT(*) FROM game_users WHERE id = $1", req.Header.Get("X-GameUser-ID")).Scan(&count)
+			if req.Header.Get("X-GameUser-ID") != "" {
+				var gameId pgtype.UUID
+
+				err = state.Pool.QueryRow(state.Context, "SELECT game_id FROM game_user WHERE user_id = $1 AND id = $2", id, req.Header.Get("X-GameUser-ID")).Scan(&gameId)
 
 				if errors.Is(err, pgx.ErrNoRows) {
 					return uapi.AuthData{}, uapi.HttpResponse{
@@ -86,10 +95,29 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 					}, false
 				}
 
-				if count == 0 {
+				// Check game_allowed_users to ensure user is still allowed to use the API
+				var gacCount int64
+
+				err = state.Pool.QueryRow(state.Context, "SELECT COUNT(*) FROM game_allowed_users WHERE user_id = $1 AND game_id = $2", id, gameId).Scan(&gacCount)
+
+				if errors.Is(err, pgx.ErrNoRows) {
 					return uapi.AuthData{}, uapi.HttpResponse{
 						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "This game user ID does not exist [count = 0]!"},
+						Json:   types.ApiError{Message: "This user does not have permission to play this game [count]!"},
+					}, false
+				}
+
+				if err != nil {
+					return uapi.AuthData{}, uapi.HttpResponse{
+						Status: http.StatusForbidden,
+						Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
+					}, false
+				}
+
+				if gacCount == 0 {
+					return uapi.AuthData{}, uapi.HttpResponse{
+						Status: http.StatusForbidden,
+						Json:   types.ApiError{Message: "This user does not have permission to play this game!"},
 					}, false
 				}
 			} else {
@@ -105,7 +133,7 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 				TargetType: TargetTypeUser,
 				ID:         id.String,
 				Authorized: true,
-				Banned:     enabled,
+				Banned:     !enabled,
 			}
 			urlIds = []string{id.String}
 		}

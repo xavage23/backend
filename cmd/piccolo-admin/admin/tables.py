@@ -1,3 +1,4 @@
+from enum import Enum
 from piccolo.columns.base import OnDelete
 from piccolo.columns.base import OnUpdate
 from piccolo.columns.column_types import Boolean
@@ -14,9 +15,105 @@ from piccolo.columns.defaults.timestamptz import TimestamptzNow
 from piccolo.columns.defaults.uuid import UUID4
 from piccolo.columns.indexes import IndexMethod
 from piccolo.table import Table
+from piccolo.columns.readable import Readable
+
+class Games(Table, tablename="games"):
+    @classmethod
+    def get_readable(cls):
+        return Readable(template="%s - %s", columns=[cls.id, cls.code])
+
+    class GameCurrentPrice(str, Enum):
+        start_price = "start"
+        end_price = "end"
+
+    id = UUID(
+        default=UUID4(),
+        null=False,
+        primary_key=True,
+        unique=False,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    code = Text(
+        default="",
+        null=False,
+        primary_key=False,
+        unique=True,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    passphrase = Text(
+        default="",
+        null=False,
+        primary_key=False,
+        unique=True,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    enabled = Boolean(
+        default=False,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    created_at = Timestamptz(
+        default=TimestamptzNow(),
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    game_started = Timestamptz(
+        default=TimestamptzNow(),
+        null=True,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    current_price = Text(
+        default="start",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        choices=GameCurrentPrice,
+    )
+    initial_balance = Integer(
+        default=0,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
 
 
 class Users(Table, tablename="users"):
+    @classmethod
+    def get_readable(cls):
+        return Readable(template="%s - %s", columns=[cls.id, cls.username])
+
     id = UUID(
         default=UUID4(),
         null=False,
@@ -77,29 +174,6 @@ class Users(Table, tablename="users"):
         db_column_name=None,
         secret=False,
     )
-
-
-class Games(Table, tablename="games"):
-    code = Text(
-        default="",
-        null=False,
-        primary_key=True,
-        unique=False,
-        index=True,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-    enabled = Boolean(
-        default=False,
-        null=False,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
     created_at = Timestamptz(
         default=TimestamptzNow(),
         null=False,
@@ -110,27 +184,6 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
-    game_started = Timestamptz(
-        default=TimestamptzNow(),
-        null=True,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-    initial_balance = Integer(
-        default=0,
-        null=False,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-
 
 class Migration(Table, tablename="migration"):
     id = Serial(
@@ -176,9 +229,8 @@ class Migration(Table, tablename="migration"):
     )
 
 
-class GameUser(Table, tablename="game_user"):
-    id = Text(
-        default="",
+class PiccoloUser(Table, tablename="piccolo_user"):
+    id = Serial(
         null=False,
         primary_key=True,
         unique=False,
@@ -187,11 +239,20 @@ class GameUser(Table, tablename="game_user"):
         db_column_name=None,
         secret=False,
     )
-    user_id = ForeignKey(
-        references=Users,
-        on_delete=OnDelete.cascade,
-        on_update=OnUpdate.cascade,
-        target_column=None,
+    username = Varchar(
+        length=100,
+        default="",
+        null=False,
+        primary_key=False,
+        unique=True,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    password = Varchar(
+        length=255,
+        default="",
         null=False,
         primary_key=False,
         unique=False,
@@ -200,11 +261,19 @@ class GameUser(Table, tablename="game_user"):
         db_column_name=None,
         secret=False,
     )
-    game_code = ForeignKey(
-        references=Games,
-        on_delete=OnDelete.cascade,
-        on_update=OnUpdate.cascade,
-        target_column=None,
+    email = Varchar(
+        length=255,
+        default="",
+        null=False,
+        primary_key=False,
+        unique=True,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    active = Boolean(
+        default=False,
         null=False,
         primary_key=False,
         unique=False,
@@ -213,7 +282,82 @@ class GameUser(Table, tablename="game_user"):
         db_column_name=None,
         secret=False,
     )
-    balance = Integer(
+    admin = Boolean(
+        default=False,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    first_name = Varchar(
+        length=255,
+        default="",
+        null=True,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    last_name = Varchar(
+        length=255,
+        default="",
+        null=True,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    superuser = Boolean(
+        default=False,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    last_login = Timestamp(
+        default=TimestampNow(),
+        null=True,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+
+
+class Sessions(Table, tablename="sessions"):
+    id = Serial(
+        null=False,
+        primary_key=True,
+        unique=False,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    token = Varchar(
+        length=100,
+        default="",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    user_id = Integer(
         default=0,
         null=False,
         primary_key=False,
@@ -223,8 +367,18 @@ class GameUser(Table, tablename="game_user"):
         db_column_name=None,
         secret=False,
     )
-    created_at = Timestamptz(
-        default=TimestamptzNow(),
+    expiry_date = Timestamp(
+        default=TimestampNow(),
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    max_expiry_date = Timestamp(
+        default=TimestampNow(),
         null=False,
         primary_key=False,
         unique=False,
@@ -256,11 +410,11 @@ class News(Table, tablename="news"):
         db_column_name=None,
         secret=False,
     )
-    game_code = ForeignKey(
+    game_id = ForeignKey(
         references=Games,
         on_delete=OnDelete.cascade,
         on_update=OnUpdate.cascade,
-        target_column=None,
+        target_column="id",
         null=False,
         primary_key=False,
         unique=False,
@@ -292,11 +446,11 @@ class Stock(Table, tablename="stock"):
         db_column_name=None,
         secret=False,
     )
-    game_code = ForeignKey(
+    game_id = ForeignKey(
         references=Games,
         on_delete=OnDelete.cascade,
         on_update=OnUpdate.cascade,
-        target_column=None,
+        target_column="id",
         null=False,
         primary_key=False,
         unique=False,
@@ -345,8 +499,47 @@ class Stock(Table, tablename="stock"):
         db_column_name=None,
         secret=False,
     )
-    current_price = Text(
-        default="start",
+    created_at = Timestamptz(
+        default=TimestamptzNow(),
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+
+
+class GameAllowedUsers(Table, tablename="game_allowed_users"):
+    id = UUID(
+        default=UUID4(),
+        null=False,
+        primary_key=True,
+        unique=False,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    game_id = ForeignKey(
+        references=Games,
+        on_delete=OnDelete.cascade,
+        on_update=OnUpdate.cascade,
+        target_column="id",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    user_id = ForeignKey(
+        references=Users,
+        on_delete=OnDelete.cascade,
+        on_update=OnUpdate.cascade,
+        target_column="id",
         null=False,
         primary_key=False,
         unique=False,
@@ -361,6 +554,65 @@ class Stock(Table, tablename="stock"):
         primary_key=False,
         unique=False,
         index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+
+
+class GameUser(Table, tablename="game_user"):
+    user_id = ForeignKey(
+        references=Users,
+        on_delete=OnDelete.cascade,
+        on_update=OnUpdate.cascade,
+        target_column="id",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    game_id = ForeignKey(
+        references=Games,
+        on_delete=OnDelete.cascade,
+        on_update=OnUpdate.cascade,
+        target_column="id",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    balance = Integer(
+        default=0,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    created_at = Timestamptz(
+        default=TimestamptzNow(),
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    id = UUID(
+        default=UUID4(),
+        null=False,
+        primary_key=True,
+        unique=False,
+        index=True,
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
@@ -382,7 +634,7 @@ class UserTransaction(Table, tablename="user_transaction"):
         references=Users,
         on_delete=OnDelete.cascade,
         on_update=OnUpdate.cascade,
-        target_column=None,
+        target_column="id",
         null=False,
         primary_key=False,
         unique=False,
@@ -391,11 +643,11 @@ class UserTransaction(Table, tablename="user_transaction"):
         db_column_name=None,
         secret=False,
     )
-    game_code = ForeignKey(
+    game_id = ForeignKey(
         references=Games,
         on_delete=OnDelete.cascade,
         on_update=OnUpdate.cascade,
-        target_column=None,
+        target_column="id",
         null=False,
         primary_key=False,
         unique=False,
@@ -408,7 +660,7 @@ class UserTransaction(Table, tablename="user_transaction"):
         references=Stock,
         on_delete=OnDelete.cascade,
         on_update=OnUpdate.cascade,
-        target_column=None,
+        target_column="id",
         null=False,
         primary_key=False,
         unique=False,

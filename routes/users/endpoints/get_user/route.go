@@ -46,11 +46,16 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	row, err := state.Pool.Query(d.Context, "SELECT "+userCols+" FROM users WHERE id = $1", userId)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		return uapi.DefaultResponse(http.StatusNotFound)
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
 	user, err := pgx.CollectOneRow(row, pgx.RowToStructByName[types.User])
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uapi.DefaultResponse(http.StatusNotFound)
+	}
 
 	if err != nil {
 		state.Logger.Error(err)
