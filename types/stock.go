@@ -15,6 +15,7 @@ type Stock struct {
 	Prices       []int64       `db:"prices" json:"-" description:"The prices of the stock in cents"`
 	CurrentPrice int64         `db:"-" json:"current_price" description:"The current price of the stock in cents"`
 	KnownPrices  []int64       `db:"-" json:"known_prices" description:"The known prices of the stock in cents"`
+	AllPrices    []int64       `db:"-" json:"all_prices" description:"The prices of the stock in cents"`
 	CreatedAt    time.Time     `db:"created_at" json:"created_at" description:"The time the stock was created"`
 	Ratios       []*StockRatio `db:"-" json:"ratios,omitempty" description:"The ratios of the stock, may not always be present"`
 }

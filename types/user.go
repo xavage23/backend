@@ -28,6 +28,7 @@ type Game struct {
 	CreatedAt         time.Time `db:"created_at" json:"created_at" description:"The time the game was created"`
 	CurrentPriceIndex int       `db:"current_price_index" json:"current_price_index" description:"The current price index of the game"`
 	InitialBalance    int64     `db:"initial_balance" json:"initial_balance" description:"The initial balance of the game"`
+	GameNumber        int       `db:"game_number" json:"game_number" description:"The number of the game. Higher numbered games will have transactions from lower game numbers migrated to themselves"`
 }
 
 type GameUser struct {

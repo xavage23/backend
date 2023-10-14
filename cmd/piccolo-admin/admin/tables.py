@@ -44,6 +44,16 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
+    game_number = Integer(
+        default=1,
+        null=False,
+        primary_key=False,
+        unique=True,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
     description = Text(
         default="",
         null=False,
@@ -466,7 +476,7 @@ class Stocks(Table, tablename="stocks"):
         default="",
         null=False,
         primary_key=False,
-        unique=False,
+        unique=True,
         index=False,
         index_method=IndexMethod.btree,
         db_column_name=None,
@@ -682,6 +692,19 @@ class UserTransactions(Table, tablename="user_transactions"):
         db_column_name=None,
         secret=False,
     )
+    stock_ticker = ForeignKey(
+        references=Stocks,
+        on_delete=OnDelete.cascade,
+        on_update=OnUpdate.cascade,
+        target_column="ticker",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
     price_index = Integer(
         default=0,
         null=False,
@@ -692,6 +715,17 @@ class UserTransactions(Table, tablename="user_transactions"):
         db_column_name=None,
         secret=False,
         price="The index of the price to use, this should be the same as the current_price_index when the transaction was created"
+    )
+    sale_price = BigInt(
+        default=0,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        price="The price of the stock at the time of the transaction, in cents, not dollars"
     )
     amount = BigInt(
         default=0,

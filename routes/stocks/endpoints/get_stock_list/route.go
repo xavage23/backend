@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"xavagebb/db"
 	"xavagebb/state"
@@ -40,6 +41,13 @@ func Docs() *docs.Doc {
 				Required:    true,
 				Schema:      docs.IdSchema,
 			},
+			{
+				Name:        "with_prior_prices",
+				In:          "query",
+				Description: "Whether to include the prior prices of the stocks.",
+				Required:    false,
+				Schema:      docs.IdSchema,
+			},
 		},
 		Resp: types.StockList{},
 	}
@@ -60,6 +68,15 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	if gameId == "" {
 		return uapi.DefaultResponse(http.StatusBadRequest)
+	}
+
+	if state.Redis.Exists(d.Context, "stock_list:"+gameId).Val() > 0 {
+		return uapi.HttpResponse{
+			Data: state.Redis.Get(d.Context, "stock_list:"+gameId).Val(),
+			Headers: map[string]string{
+				"X-Cache": "true",
+			},
+		}
 	}
 
 	rows, err := state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE game_id = $1 ORDER BY created_at DESC", gameId)
@@ -91,7 +108,19 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	var stockList []*types.Stock
 	for i := range stocks {
-		parsedStock := transact.ParseStock(&stocks[i], currentPriceIndex)
+		parsedStock := transact.ParseStock(d.Context, &stocks[i], currentPriceIndex)
+
+		if r.URL.Query().Get("with_prior_prices") == "true" {
+			allPrices, err := transact.GetAllStockPrices(d.Context, gameId, parsedStock.Ticker)
+
+			if err != nil {
+				state.Logger.Error(err)
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+
+			parsedStock.AllPrices = allPrices
+		}
+
 		stockList = append(stockList, parsedStock)
 	}
 
@@ -100,5 +129,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			Stocks:     stockList,
 			PriceIndex: currentPriceIndex,
 		},
+		CacheKey:  "stock_list:" + gameId,
+		CacheTime: 30 * time.Second,
 	}
 }

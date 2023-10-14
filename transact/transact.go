@@ -89,23 +89,11 @@ func parseTrList(ctx context.Context, gameId string, transactions []types.UserTr
 func GetUserCurrentBalance(initialBalance int64, uts []types.UserTransaction) int64 {
 	var currentBalance = initialBalance
 	for _, ut := range uts {
-		var stockPrice int64
-
-		if ut.Stock == nil {
-			panic("Stock is nil")
-		}
-
-		if ut.PriceIndex > len(ut.Stock.Prices)-1 {
-			stockPrice = ut.Stock.Prices[len(ut.Stock.Prices)-1]
-		} else {
-			stockPrice = ut.Stock.Prices[ut.PriceIndex]
-		}
-
 		switch ut.Action {
 		case "buy":
-			currentBalance -= stockPrice * ut.Amount
+			currentBalance -= ut.SalePrice * ut.Amount
 		case "sell":
-			currentBalance += stockPrice * ut.Amount
+			currentBalance += ut.SalePrice * ut.Amount
 		}
 	}
 
@@ -130,10 +118,10 @@ func GetStock(ctx context.Context, stockId string, currentPriceIndex int) (*type
 		return nil, err
 	}
 
-	return ParseStock(&stock, currentPriceIndex), nil
+	return ParseStock(ctx, &stock, currentPriceIndex), nil
 }
 
-func ParseStock(stock *types.Stock, currentPriceIndex int) *types.Stock {
+func ParseStock(ctx context.Context, stock *types.Stock, currentPriceIndex int) *types.Stock {
 	if currentPriceIndex > len(stock.Prices)-1 {
 		currentPriceIndex = len(stock.Prices) - 1
 	}
@@ -148,6 +136,41 @@ func ParseStock(stock *types.Stock, currentPriceIndex int) *types.Stock {
 	}
 
 	return stock
+}
+
+func GetAllStockPrices(ctx context.Context, gameId, ticker string) ([]int64, error) {
+	// Get game number of current game
+	var gameNumber int
+
+	err := state.Pool.QueryRow(ctx, "SELECT game_number FROM games WHERE id = $1", gameId).Scan(&gameNumber)
+
+	if err != nil {
+		return nil, err
+	}
+
+	gameRows, err := state.Pool.Query(ctx, "SELECT game_id FROM games WHERE game_number < $1 ORDER BY game_number ASC LIMIT 1", gameNumber)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer gameRows.Close()
+
+	var allPrices []int64
+	for gameRows.Next() {
+		// Fetch prices within this game ID
+		var prices []int64
+
+		err = state.Pool.QueryRow(ctx, "SELECT prices FROM stocks WHERE game_id = $1 AND ticker = $2", gameRows, ticker).Scan(&prices)
+
+		if err != nil {
+			return nil, err
+		}
+
+		allPrices = append(allPrices, prices...)
+	}
+
+	return allPrices, nil
 }
 
 func GetTotalStockQuantity(uts []types.UserTransaction, stockId string) int64 {

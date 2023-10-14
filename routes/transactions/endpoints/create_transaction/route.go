@@ -191,7 +191,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		}
 
 		// Create transaction
-		_, err = state.Pool.Exec(d.Context, "INSERT INTO user_transactions (user_id, game_id, stock_id, price_index, amount, action) VALUES ($1, $2, $3, $4, $5, $6)", userId, gameId, req.StockID, currentPriceIndex, req.Amount, req.Action)
+		_, err = state.Pool.Exec(d.Context, "INSERT INTO user_transactions (user_id, game_id, stock_id, stock_ticker, price_index, amount, action, sale_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", userId, gameId, req.StockID, stock.Ticker, currentPriceIndex, req.Amount, req.Action, stock.Prices[pIndex])
 
 		if err != nil {
 			state.Logger.Error(err)
@@ -211,7 +211,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		}
 
 		// Create transaction
-		_, err = state.Pool.Exec(d.Context, "INSERT INTO user_transactions (user_id, game_id, stock_id, price_index, amount, action) VALUES ($1, $2, $3, $4, $5, $6)", userId, gameId, req.StockID, currentPriceIndex, req.Amount, req.Action)
+		_, err = state.Pool.Exec(d.Context, "INSERT INTO user_transactions (user_id, game_id, stock_id, stock_ticker, price_index, amount, action, sale_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", userId, gameId, req.StockID, stock.Ticker, currentPriceIndex, req.Amount, req.Action, stock.Prices[pIndex])
 
 		if err != nil {
 			state.Logger.Error(err)
