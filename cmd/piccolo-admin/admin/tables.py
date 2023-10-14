@@ -564,7 +564,7 @@ class GameAllowedUsers(Table, tablename="game_allowed_users"):
     )
 
 
-class GameUser(Table, tablename="game_user"):
+class GameUsers(Table, tablename="game_users"):
     id = UUID(
         default=UUID4(),
         null=False,
@@ -601,7 +601,7 @@ class GameUser(Table, tablename="game_user"):
         db_column_name=None,
         secret=False,
     )
-    balance = BigInt(
+    initial_balance = BigInt(
         default=0,
         null=False,
         primary_key=False,
@@ -610,7 +610,7 @@ class GameUser(Table, tablename="game_user"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
-        help_text="Balance is in cents, not dollars"
+        help_text="This is the initial balance of the user. Balance is in cents, not dollars"
     )
     created_at = Timestamptz(
         default=TimestamptzNow(),
@@ -623,7 +623,15 @@ class GameUser(Table, tablename="game_user"):
         secret=False,
     )
 
-class UserTransaction(Table, tablename="user_transaction"):
+class UserTransactions(Table, tablename="user_transactions"):
+    @classmethod
+    def get_readable(cls):
+        return Readable(template="%s [%s %s] by %s", columns=[cls.id, cls.action, cls.stock_id, cls.user_id])
+
+    class UserTransactionAction(str, Enum):
+        buy = "buy"
+        sell = "sell"
+
     id = UUID(
         default=UUID4(),
         null=False,
@@ -703,6 +711,7 @@ class UserTransaction(Table, tablename="user_transaction"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+        choices=UserTransactionAction
     )
     created_at = Timestamptz(
         default=TimestamptzNow(),

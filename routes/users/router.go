@@ -17,7 +17,7 @@ const tagName = "Users"
 type Router struct{}
 
 func (b Router) Tag() (string, string) {
-	return tagName, "These API endpoints are related to users on IBL"
+	return tagName, "These API endpoints are related to users"
 }
 
 func (b Router) Routes(r *chi.Mux) {

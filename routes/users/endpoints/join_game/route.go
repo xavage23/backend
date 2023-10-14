@@ -124,7 +124,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	// Check that the user is not already in the game
 	var gameUserId string
 
-	err = state.Pool.QueryRow(d.Context, "SELECT id FROM game_user WHERE user_id = $1 AND game_id = $2", d.Auth.ID, gameId).Scan(&gameUserId)
+	err = state.Pool.QueryRow(d.Context, "SELECT id FROM game_users WHERE user_id = $1 AND game_id = $2", d.Auth.ID, gameId).Scan(&gameUserId)
 
 	if err == nil {
 		return uapi.HttpResponse{
@@ -141,7 +141,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	// Create the game join
-	err = state.Pool.QueryRow(d.Context, "INSERT INTO game_user (user_id, game_id, balance) VALUES ($1, $2, $3) RETURNING id", d.Auth.ID, gameId, initialBalance).Scan(&gameUserId)
+	err = state.Pool.QueryRow(d.Context, "INSERT INTO game_users (user_id, game_id, initial_balance) VALUES ($1, $2, $3) RETURNING id", d.Auth.ID, gameId, initialBalance).Scan(&gameUserId)
 
 	if err != nil {
 		state.Logger.Error(err)

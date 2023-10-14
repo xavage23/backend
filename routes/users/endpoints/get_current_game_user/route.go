@@ -6,6 +6,7 @@ import (
 	"strings"
 	"xavagebb/db"
 	"xavagebb/state"
+	"xavagebb/transact"
 
 	"xavagebb/types"
 
@@ -47,7 +48,7 @@ func Docs() *docs.Doc {
 }
 
 func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
-	row, err := state.Pool.Query(d.Context, "SELECT "+gameUserCols+" FROM game_user WHERE id = $1", r.Header.Get("X-GameUser-ID"))
+	row, err := state.Pool.Query(d.Context, "SELECT "+gameUserCols+" FROM game_users WHERE id = $1", r.Header.Get("X-GameUser-ID"))
 
 	if err != nil {
 		state.Logger.Error(err)
@@ -84,6 +85,18 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	gu.Game = game
+
+	uts, err := transact.GetUserTransactions(d.Context, gu.UserID, gu.GameID)
+
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.HttpResponse{
+			Status: http.StatusInternalServerError,
+			Json:   types.ApiError{Message: "An error occurred while fetching user transactions: " + err.Error()},
+		}
+	}
+
+	gu.CurrentBalance = transact.GetUserCurrentBalance(gu.InitialBalance, uts)
 
 	return uapi.HttpResponse{
 		Json: gu,

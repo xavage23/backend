@@ -29,11 +29,11 @@ CREATE TABLE IF NOT EXISTS game_allowed_users (
     UNIQUE (user_id, game_id)
 );
 
-CREATE TABLE IF NOT EXISTS game_user (
+CREATE TABLE IF NOT EXISTS game_users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- Game User token
     user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    balance BIGINT NOT NULL, -- The current balance of the user in cents
+    initial_balance BIGINT NOT NULL, -- The initial balance of the user in cents
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id, game_id)
 );
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS news (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS user_transaction (
+CREATE TABLE IF NOT EXISTS user_transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,

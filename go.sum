@@ -28,6 +28,8 @@ github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/r
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
 github.com/gabriel-vasile/mimetype v1.4.2 h1:w5qFW6JKBz9Y393Y4q372O9A7cUSequkh1Q7OhCmWKU=
 github.com/gabriel-vasile/mimetype v1.4.2/go.mod h1:zApsH/mKG4w07erKIaJPFiX0Tsq9BFQgN3qGY5GnNgA=
+github.com/gabriel-vasile/mimetype v1.4.3 h1:in2uUcidCuFcDKtdcBxlR0rJ1+fsokWf+uqxgUFjbI0=
+github.com/gabriel-vasile/mimetype v1.4.3/go.mod h1:d8uq/6HKRL6CGdk+aubisF/M5GcPfT7nKyLpA0lbSSk=
 github.com/getkin/kin-openapi v0.118.0 h1:z43njxPmJ7TaPpMSCQb7PN0dEYno4tyBPQcrFdHoLuM=
 github.com/getkin/kin-openapi v0.118.0/go.mod h1:l5e9PaFUo9fyLJCPGQeXI2ML8c3P8BHOEV2VaAVf/pc=
 github.com/getkin/kin-openapi v0.120.0 h1:MqJcNJFrMDFNc07iwE8iFC5eT2k/NPUFDIpNeiZv8Jg=
@@ -70,6 +72,8 @@ github.com/infinitybotlist/eureka v0.0.0-20230725195348-b2bd048840f8 h1:RKKnioUL
 github.com/infinitybotlist/eureka v0.0.0-20230725195348-b2bd048840f8/go.mod h1:EncygsTKn7CRa8waGotqG+OpUDxZrwyNBTK47pvSWes=
 github.com/infinitybotlist/eureka v0.0.0-20230730173342-cf616ab640d2 h1:a1QXxXfpghlWPIMs2J9/ml7xbavjMr63Yg1cAKDAsV8=
 github.com/infinitybotlist/eureka v0.0.0-20230730173342-cf616ab640d2/go.mod h1:XY/H8htZ4EQJwyfwnDrLuKg5M7DGoo6835ZJSKSswCg=
+github.com/infinitybotlist/eureka v0.0.0-20231014041954-1221f31fd729 h1:xMEWQO3dA0usM8gNFHa9G45U9WOWCswHvRvkQzLcbR0=
+github.com/infinitybotlist/eureka v0.0.0-20231014041954-1221f31fd729/go.mod h1:XY/H8htZ4EQJwyfwnDrLuKg5M7DGoo6835ZJSKSswCg=
 github.com/invopop/yaml v0.1.0/go.mod h1:2XuRLgs/ouIrW3XNzuNj7J3Nvu/Dig5MXvbCEdiBN3Q=
 github.com/invopop/yaml v0.2.0 h1:7zky/qH+O0DwAyoobXUqvVBwgBFRxKoQ/3FjcVpjTMY=
 github.com/invopop/yaml v0.2.0/go.mod h1:2XuRLgs/ouIrW3XNzuNj7J3Nvu/Dig5MXvbCEdiBN3Q=

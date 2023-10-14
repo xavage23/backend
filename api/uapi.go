@@ -77,9 +77,9 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 			}
 
 			if req.Header.Get("X-GameUser-ID") != "" {
-				var gameId pgtype.UUID
+				var gameId string
 
-				err = state.Pool.QueryRow(state.Context, "SELECT game_id FROM game_user WHERE user_id = $1 AND id = $2", id, req.Header.Get("X-GameUser-ID")).Scan(&gameId)
+				err = state.Pool.QueryRow(state.Context, "SELECT game_id FROM game_users WHERE user_id = $1 AND id = $2", id, req.Header.Get("X-GameUser-ID")).Scan(&gameId)
 
 				if errors.Is(err, pgx.ErrNoRows) {
 					return uapi.AuthData{}, uapi.HttpResponse{
@@ -119,6 +119,10 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 						Status: http.StatusForbidden,
 						Json:   types.ApiError{Message: "This user does not have permission to play this game!"},
 					}, false
+				}
+
+				authData.Data = map[string]any{
+					"gameId": gameId,
 				}
 			} else {
 				if auth.AllowedScope != "notingame" {
