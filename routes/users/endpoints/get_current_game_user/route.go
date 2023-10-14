@@ -86,7 +86,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	gu.Game = game
 
-	uts, err := transact.GetUserTransactions(d.Context, gu.UserID, gu.GameID)
+	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gu.GameID)
+
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	uts, err := transact.GetUserTransactions(d.Context, gu.UserID, gu.GameID, currentPriceIndex)
 
 	if err != nil {
 		state.Logger.Error(err)

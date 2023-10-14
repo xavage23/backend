@@ -2,6 +2,12 @@ package types
 
 import "time"
 
+type CreateTransaction struct {
+	StockID string `json:"stock_id" description:"The ID of the stock"`
+	Amount  int64  `json:"amount" description:"The amount of the stock to trade"`
+	Action  string `json:"action" description:"The type of the transaction (buy or sell)"`
+}
+
 type UserTransaction struct {
 	ID         string    `db:"id" json:"id" description:"The ID of the transaction"`
 	UserID     string    `db:"user_id" json:"user_id" description:"The ID of the user"`

@@ -18,7 +18,19 @@ var (
 	stockCols    = strings.Join(stockColsArr, ", ")
 )
 
-func GetAllTransactions(ctx context.Context, gameId string) ([]types.UserTransaction, error) {
+func GetCurrentPriceIndex(ctx context.Context, gameId string) (int, error) {
+	var gameCurrentPriceIndex int
+
+	err := state.Pool.QueryRow(ctx, "SELECT current_price_index FROM games WHERE id = $1", gameId).Scan(&gameCurrentPriceIndex)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return gameCurrentPriceIndex, nil
+}
+
+func GetAllTransactions(ctx context.Context, gameId string, currentPriceIndex int) ([]types.UserTransaction, error) {
 	rows, err := state.Pool.Query(ctx, "SELECT "+userTransactionCols+" FROM user_transactions WHERE game_id = $1 ORDER BY created_at DESC", gameId)
 
 	if err != nil {
@@ -31,10 +43,10 @@ func GetAllTransactions(ctx context.Context, gameId string) ([]types.UserTransac
 		return nil, err
 	}
 
-	return parseTrList(ctx, gameId, transactions)
+	return parseTrList(ctx, gameId, transactions, currentPriceIndex)
 }
 
-func GetUserTransactions(ctx context.Context, userId string, gameId string) ([]types.UserTransaction, error) {
+func GetUserTransactions(ctx context.Context, userId string, gameId string, currentPriceIndex int) ([]types.UserTransaction, error) {
 	rows, err := state.Pool.Query(ctx, "SELECT "+userTransactionCols+" FROM user_transactions WHERE user_id = $1 AND game_id = $2 ORDER BY created_at DESC", userId, gameId)
 
 	if err != nil {
@@ -47,18 +59,10 @@ func GetUserTransactions(ctx context.Context, userId string, gameId string) ([]t
 		return nil, err
 	}
 
-	return parseTrList(ctx, gameId, transactions)
+	return parseTrList(ctx, gameId, transactions, currentPriceIndex)
 }
 
-func parseTrList(ctx context.Context, gameId string, transactions []types.UserTransaction) ([]types.UserTransaction, error) {
-	var gameCurrentPriceIndex int
-
-	err := state.Pool.QueryRow(ctx, "SELECT current_price_index FROM games WHERE id = $1", gameId).Scan(&gameCurrentPriceIndex)
-
-	if err != nil {
-		return nil, err
-	}
-
+func parseTrList(ctx context.Context, gameId string, transactions []types.UserTransaction, currentPriceIndex int) ([]types.UserTransaction, error) {
 	var cachedStocks = make(map[string]*types.Stock)
 	for i := range transactions {
 		cachedStock, ok := cachedStocks[transactions[i].StockID]
@@ -68,7 +72,7 @@ func parseTrList(ctx context.Context, gameId string, transactions []types.UserTr
 			continue
 		}
 
-		stock, err := GetStock(ctx, transactions[i].StockID, gameCurrentPriceIndex)
+		stock, err := GetStock(ctx, transactions[i].StockID, currentPriceIndex)
 
 		if err != nil {
 			return nil, err
@@ -126,6 +130,10 @@ func GetStock(ctx context.Context, stockId string, currentPriceIndex int) (*type
 		return nil, err
 	}
 
+	return ParseStock(&stock, currentPriceIndex), nil
+}
+
+func ParseStock(stock *types.Stock, currentPriceIndex int) *types.Stock {
 	if currentPriceIndex > len(stock.Prices)-1 {
 		currentPriceIndex = len(stock.Prices) - 1
 	}
@@ -139,5 +147,23 @@ func GetStock(ctx context.Context, stockId string, currentPriceIndex int) (*type
 		}
 	}
 
-	return &stock, nil
+	return stock
+}
+
+func GetTotalStockQuantity(uts []types.UserTransaction, stockId string) int64 {
+	var totalQuantity int64
+	for _, ut := range uts {
+		if ut.StockID != stockId {
+			continue
+		}
+
+		switch ut.Action {
+		case "buy":
+			totalQuantity += ut.Amount
+		case "sell":
+			totalQuantity -= ut.Amount
+		}
+	}
+
+	return totalQuantity
 }

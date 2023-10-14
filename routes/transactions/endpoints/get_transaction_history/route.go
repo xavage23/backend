@@ -23,7 +23,7 @@ var (
 func Docs() *docs.Doc {
 	return &docs.Doc{
 		Summary:     "Get Transaction History",
-		Description: "Returns the transaction history. Note that user id here is only used for authentication.",
+		Description: "Returns the transaction history.",
 		Params: []docs.Parameter{
 			{
 				Name:        "userId",
@@ -78,10 +78,17 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	var uts []types.UserTransaction
 	var err error
 
+	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
+
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
 	if r.URL.Query().Get("only_me") == "true" {
-		uts, err = transact.GetUserTransactions(d.Context, userId, gameId)
+		uts, err = transact.GetUserTransactions(d.Context, userId, gameId, currentPriceIndex)
 	} else {
-		uts, err = transact.GetAllTransactions(d.Context, gameId)
+		uts, err = transact.GetAllTransactions(d.Context, gameId, currentPriceIndex)
 	}
 
 	if err != nil {
