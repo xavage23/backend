@@ -54,7 +54,7 @@ func Docs() *docs.Doc {
 				Schema:      docs.IdSchema,
 			},
 		},
-		Resp: types.User{},
+		Resp: []types.UserTransaction{},
 	}
 }
 

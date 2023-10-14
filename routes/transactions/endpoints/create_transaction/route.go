@@ -35,7 +35,7 @@ func Docs() *docs.Doc {
 			},
 		},
 		Req:  types.CreateTransaction{},
-		Resp: types.User{},
+		Resp: types.ApiError{},
 	}
 }
 
