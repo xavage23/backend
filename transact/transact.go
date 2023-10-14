@@ -13,6 +13,9 @@ import (
 var (
 	userTransactionColsArr = db.GetCols(types.UserTransaction{})
 	userTransactionCols    = strings.Join(userTransactionColsArr, ", ")
+
+	stockColsArr = db.GetCols(types.Stock{})
+	stockCols    = strings.Join(stockColsArr, ", ")
 )
 
 func GetAllTransactions(ctx context.Context, gameId string) ([]types.UserTransaction, error) {
@@ -60,4 +63,33 @@ func GetUserCurrentBalance(initialBalance int64, uts []types.UserTransaction) in
 	}
 
 	return currentBalance
+}
+
+// Given a stock ID and what price to use, return a Stock object
+//
+// Current price can be found by fetching the current_price field in DB for the `games` table
+//
+// This function does not handle ratios, use GetStockRatios (not implemented) for that
+func GetStock(ctx context.Context, stockId string, currentPrice string) (*types.Stock, error) {
+	row, err := state.Pool.Query(ctx, "SELECT "+stockCols+" FROM stocks WHERE id = $1", stockId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	stock, err := pgx.CollectOneRow(row, pgx.RowToStructByName[types.Stock])
+
+	if err != nil {
+		return nil, err
+	}
+
+	if currentPrice == "start" {
+		stock.CurrentPrice = stock.StartPrice
+		stock.KnownPrices = []int64{stock.StartPrice}
+	} else {
+		stock.CurrentPrice = stock.EndPrice
+		stock.KnownPrices = []int64{stock.StartPrice, stock.EndPrice}
+	}
+
+	return &stock, nil
 }

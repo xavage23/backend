@@ -41,7 +41,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	limit, err := ratelimit.Ratelimit{
 		Expiry:      1 * time.Second,
 		MaxRequests: 10,
-		Bucket:      "login",
+		Bucket:      "join",
 	}.Limit(d.Context, r)
 
 	if err != nil {
@@ -79,7 +79,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	var gameId string
 	var initialBalance int
 
-	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance FROM games WHERE code = $1 AND passphrase = $2", req.GameCode, req.Passphrase).Scan(&gameId, &initialBalance)
+	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{

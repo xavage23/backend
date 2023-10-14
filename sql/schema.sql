@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS games (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), -- needed by piccolo
     code TEXT NOT NULL UNIQUE CHECK (code <> ''), -- Game code
     description TEXT NOT NULL UNIQUE CHECK (description <> ''), -- Game description
-    passphrase TEXT NOT NULL UNIQUE CHECK (passphrase <> ''), -- Game passphrase
     enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    trading_allowed BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     current_price TEXT NOT NULL DEFAULT 'start', -- The current price of the stock, 'start' means start price and 'end' means end price
     initial_balance BIGINT NOT NULL -- The initial balance of a user in the game in cents
@@ -38,11 +38,12 @@ CREATE TABLE IF NOT EXISTS game_users (
     UNIQUE (user_id, game_id)
 );
 
-CREATE TABLE IF NOT EXISTS stock (
+CREATE TABLE IF NOT EXISTS stocks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
     ticker TEXT NOT NULL, -- AAPL etc
     company_name TEXT NOT NULL,
+    description TEXT NOT NULL,
     start_price BIGINT NOT NULL, -- The price of the stock at the start of the game in cents
     end_price BIGINT NOT NULL, -- The price of the stock at the end of the game in cents
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

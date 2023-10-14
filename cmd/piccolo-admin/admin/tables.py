@@ -56,17 +56,17 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
-    passphrase = Text(
-        default="",
+    enabled = Boolean(
+        default=False,
         null=False,
         primary_key=False,
-        unique=True,
-        index=True,
+        unique=False,
+        index=False,
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
     )
-    enabled = Boolean(
+    trading_allowed = Boolean(
         default=False,
         null=False,
         primary_key=False,
@@ -437,7 +437,11 @@ class News(Table, tablename="news"):
     )
 
 
-class Stock(Table, tablename="stock"):
+class Stocks(Table, tablename="stocks"):
+    @classmethod
+    def get_readable(cls):
+        return Readable(template="%s - %s (%s)", columns=[cls.id, cls.ticker, cls.company_name])
+
     id = UUID(
         default=UUID4(),
         null=False,
@@ -472,6 +476,16 @@ class Stock(Table, tablename="stock"):
         secret=False,
     )
     company_name = Text(
+        default="",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    description = Text(
         default="",
         null=False,
         primary_key=False,
@@ -669,7 +683,7 @@ class UserTransactions(Table, tablename="user_transactions"):
         secret=False,
     )
     stock_id = ForeignKey(
-        references=Stock,
+        references=Stocks,
         on_delete=OnDelete.cascade,
         on_update=OnUpdate.cascade,
         target_column="id",
