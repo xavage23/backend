@@ -42,11 +42,12 @@ CREATE TABLE IF NOT EXISTS game_users (
 CREATE TABLE IF NOT EXISTS stocks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    ticker TEXT NOT NULL UNIQUE, -- AAPL etc
+    ticker TEXT NOT NULL, -- AAPL etc
     company_name TEXT NOT NULL,
     description TEXT NOT NULL,
     prices BIGINT[] NOT NULL, -- The prices of the stock in cents
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (game_id, ticker)
 );
 
 CREATE TABLE IF NOT EXISTS news (
@@ -61,7 +62,6 @@ CREATE TABLE IF NOT EXISTS user_transactions (
     user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
     stock_id UUID NOT NULL REFERENCES stock (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    stock_ticker TEXT NOT NULL REFERENCES stocks (ticker) ON UPDATE CASCADE ON DELETE CASCADE, -- AAPL etc
     price_index INTEGER NOT NULL, -- The price of the stock at the time of the transaction in cents
     sale_price BIGINT NOT NULL, -- The price of the stock at the time of the transaction in cents
     amount BIGINT NOT NULL, -- The amount of stocks bought/sold

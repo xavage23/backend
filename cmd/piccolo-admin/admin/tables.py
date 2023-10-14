@@ -447,7 +447,7 @@ class News(Table, tablename="news"):
 class Stocks(Table, tablename="stocks"):
     @classmethod
     def get_readable(cls):
-        return Readable(template="%s - %s (%s)", columns=[cls.id, cls.ticker, cls.company_name])
+        return Readable(template="%s - %s (%s) %s", columns=[cls.id, cls.ticker, cls.company_name, cls.game_id])
 
     id = UUID(
         default=UUID4(),
@@ -684,19 +684,6 @@ class UserTransactions(Table, tablename="user_transactions"):
         on_delete=OnDelete.cascade,
         on_update=OnUpdate.cascade,
         target_column="id",
-        null=False,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-    stock_ticker = ForeignKey(
-        references=Stocks,
-        on_delete=OnDelete.cascade,
-        on_update=OnUpdate.cascade,
-        target_column="ticker",
         null=False,
         primary_key=False,
         unique=False,

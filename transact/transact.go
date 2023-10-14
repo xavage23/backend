@@ -154,10 +154,22 @@ func GetAllStockPrices(ctx context.Context, gameId, ticker string) ([]int64, err
 		return nil, err
 	}
 
-	defer gameRows.Close()
+	var gameIds []string
+	for gameRows.Next() {
+		// Fetch all game IDs
+		var gameId string
+
+		err = gameRows.Scan(&gameId)
+
+		if err != nil {
+			return nil, err
+		}
+
+		gameIds = append(gameIds, gameId)
+	}
 
 	var allPrices []int64
-	for gameRows.Next() {
+	for _, gameRows := range gameIds {
 		// Fetch prices within this game ID
 		var prices []int64
 
@@ -165,6 +177,11 @@ func GetAllStockPrices(ctx context.Context, gameId, ticker string) ([]int64, err
 
 		if err != nil {
 			return nil, err
+		}
+
+		// Reverse prices
+		for i, j := 0, len(prices)-1; i < j; i, j = i+1, j-1 {
+			prices[i], prices[j] = prices[j], prices[i]
 		}
 
 		allPrices = append(allPrices, prices...)

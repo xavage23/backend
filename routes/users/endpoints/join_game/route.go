@@ -130,7 +130,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.HttpResponse{
 			Json: types.GameJoinResponse{
 				ID:  gameUserId,
-				New: true,
+				New: false,
 			},
 		}
 	}
@@ -140,8 +140,110 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
+	tx, err := state.Pool.Begin(d.Context)
+
+	if err != nil {
+		state.Logger.Error("tx create error:", err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	defer tx.Rollback(d.Context)
+
+	// Copy transactions to new game
+	var gameNumber int
+	err = tx.QueryRow(d.Context, "SELECT game_number FROM games WHERE id = $1", gameId).Scan(&gameNumber)
+
+	if err != nil {
+		state.Logger.Error("could not fetch game_number", err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	oldGames, err := tx.Query(d.Context, "SELECT id FROM games WHERE game_number < $1", gameNumber)
+
+	if err != nil {
+		state.Logger.Error("could not fetch old games", err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	var gameIds []string
+
+	for oldGames.Next() {
+		// Fetch all transactions from the old game FOR THE user ID and copy them
+		var oldGameId string
+		err = oldGames.Scan(&oldGameId)
+
+		if err != nil {
+			state.Logger.Error("couldnt scan game id", err)
+			return uapi.DefaultResponse(http.StatusInternalServerError)
+		}
+
+		gameIds = append(gameIds, oldGameId)
+	}
+
+	oldGames.Close()
+
+	type utid struct {
+		ID      string
+		StockId string
+	}
+
+	for _, oldGameId := range gameIds {
+		rows, err := tx.Query(d.Context, "INSERT INTO user_transactions (user_id, game_id, stock_id, price_index, amount, action, sale_price) SELECT $1, $2, stock_id, price_index, amount, action, sale_price FROM user_transactions WHERE game_id = $3 AND user_id = $4 RETURNING id, stock_id", d.Auth.ID, gameId, oldGameId, d.Auth.ID)
+
+		if err != nil {
+			state.Logger.Error("couldnt add new uts", err)
+			return uapi.DefaultResponse(http.StatusInternalServerError)
+		}
+
+		var utids []utid
+		for rows.Next() {
+			var id string
+			var stockId string
+			err = rows.Scan(&id, &stockId)
+
+			if err != nil {
+				state.Logger.Error("utid update error", err)
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+
+			utids = append(utids, utid{
+				ID:      id,
+				StockId: stockId,
+			})
+		}
+
+		rows.Close()
+
+		for _, utid := range utids {
+			// Get the corresponding stock ID with the same ticker as the stock ID in the old game
+			var stockId string
+
+			err = tx.QueryRow(d.Context, "SELECT id FROM stocks WHERE game_id = $1 AND ticker = (SELECT ticker FROM stocks WHERE id = $2)", gameId, utid.StockId).Scan(&stockId)
+
+			if err != nil {
+				state.Logger.Error("utid id select", err, utid)
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+
+			// Update the stock ID in the new game
+			_, err = tx.Exec(d.Context, "UPDATE user_transactions SET stock_id = $1 WHERE id = $2", stockId, utid.ID)
+
+			if err != nil {
+				state.Logger.Error("transact update", err)
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+		}
+	}
+
 	// Create the game join
-	err = state.Pool.QueryRow(d.Context, "INSERT INTO game_users (user_id, game_id, initial_balance) VALUES ($1, $2, $3) RETURNING id", d.Auth.ID, gameId, initialBalance).Scan(&gameUserId)
+	err = tx.QueryRow(d.Context, "INSERT INTO game_users (user_id, game_id, initial_balance) VALUES ($1, $2, $3) RETURNING id", d.Auth.ID, gameId, initialBalance).Scan(&gameUserId)
+
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	err = tx.Commit(d.Context)
 
 	if err != nil {
 		state.Logger.Error(err)
