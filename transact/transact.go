@@ -2,6 +2,7 @@ package transact
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"xavagebb/db"
 	"xavagebb/state"
@@ -175,13 +176,15 @@ func GetAllStockPrices(ctx context.Context, gameId, ticker string) ([]int64, err
 
 		err = state.Pool.QueryRow(ctx, "SELECT prices FROM stocks WHERE game_id = $1 AND ticker = $2", gameRows, ticker).Scan(&prices)
 
-		if err != nil {
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			return nil, err
 		}
 
 		// Reverse prices
-		for i, j := 0, len(prices)-1; i < j; i, j = i+1, j-1 {
-			prices[i], prices[j] = prices[j], prices[i]
+		if len(prices) > 0 {
+			for i, j := 0, len(prices)-1; i < j; i, j = i+1, j-1 {
+				prices[i], prices[j] = prices[j], prices[i]
+			}
 		}
 
 		allPrices = append(allPrices, prices...)
