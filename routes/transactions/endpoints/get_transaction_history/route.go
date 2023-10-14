@@ -47,13 +47,6 @@ func Docs() *docs.Doc {
 				Schema:      docs.IdSchema,
 			},
 			{
-				Name:        "include_stocks",
-				In:          "query",
-				Description: "Whether to include the stock object in each transaction. ",
-				Required:    false,
-				Schema:      docs.IdSchema,
-			},
-			{
 				Name:        "only_me",
 				In:          "query",
 				Description: "Whether to only include transactions that the user is involved in. ",
@@ -127,38 +120,6 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 			users[uts[i].UserID] = &user
 			uts[i].User = &user
-		}
-	}
-
-	// Fill in stocks
-	if r.URL.Query().Get("include_stocks") == "true" {
-		var gameCurrentPrice string
-
-		err = state.Pool.QueryRow(d.Context, "SELECT current_price FROM games WHERE id = $1", gameId).Scan(&gameCurrentPrice)
-
-		if err != nil {
-			state.Logger.Error(err)
-			return uapi.DefaultResponse(http.StatusInternalServerError)
-		}
-
-		var cachedStocks = make(map[string]*types.Stock)
-		for i := range uts {
-			cachedStock, ok := cachedStocks[uts[i].StockID]
-
-			if ok {
-				uts[i].Stock = cachedStock
-				continue
-			}
-
-			stock, err := transact.GetStock(d.Context, uts[i].StockID, gameCurrentPrice)
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			cachedStocks[uts[i].StockID] = stock
-			uts[i].Stock = stock
 		}
 	}
 

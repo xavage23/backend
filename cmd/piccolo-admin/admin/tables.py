@@ -10,6 +10,8 @@ from piccolo.columns.column_types import Timestamp
 from piccolo.columns.column_types import Timestamptz
 from piccolo.columns.column_types import UUID
 from piccolo.columns.column_types import Varchar
+from piccolo.columns.column_types import Array
+from piccolo.columns.column_types import Integer
 from piccolo.columns.defaults.timestamp import TimestampNow
 from piccolo.columns.defaults.timestamptz import TimestamptzNow
 from piccolo.columns.defaults.uuid import UUID4
@@ -21,10 +23,6 @@ class Games(Table, tablename="games"):
     @classmethod
     def get_readable(cls):
         return Readable(template="%s - %s", columns=[cls.id, cls.code])
-
-    class GameCurrentPrice(str, Enum):
-        start_price = "start"
-        end_price = "end"
 
     id = UUID(
         default=UUID4(),
@@ -86,8 +84,8 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
-    current_price = Text(
-        default="start",
+    current_price_index = Integer(
+        default=0,
         null=False,
         primary_key=False,
         unique=False,
@@ -95,8 +93,7 @@ class Games(Table, tablename="games"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
-        choices=GameCurrentPrice,
-        help_text="Whether the current price is the start or end price",
+        help_text="0 means first price, then keep incrementing",
     )
     initial_balance = BigInt(
         default=0,
@@ -495,8 +492,9 @@ class Stocks(Table, tablename="stocks"):
         db_column_name=None,
         secret=False,
     )
-    start_price = BigInt(
-        default=0,
+    prices = Array(
+        base_column=BigInt(),
+        default=[],
         null=False,
         primary_key=False,
         unique=False,
@@ -505,17 +503,6 @@ class Stocks(Table, tablename="stocks"):
         db_column_name=None,
         secret=False,
         help_text="Price is in cents, not dollars"
-    )
-    end_price = BigInt(
-        default=0,
-        null=False,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-        help_text="Price is in cents, not dollars",
     )
     created_at = Timestamptz(
         default=TimestamptzNow(),
@@ -695,7 +682,7 @@ class UserTransactions(Table, tablename="user_transactions"):
         db_column_name=None,
         secret=False,
     )
-    stock_price = BigInt(
+    price_index = Integer(
         default=0,
         null=False,
         primary_key=False,
@@ -704,7 +691,7 @@ class UserTransactions(Table, tablename="user_transactions"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
-        price="Price is in cents, not dollars"
+        price="The index of the price to use, this should be the same as the current_price_index when the transaction was created"
     )
     amount = BigInt(
         default=0,

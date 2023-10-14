@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS games (
     enabled BOOLEAN NOT NULL DEFAULT FALSE,
     trading_allowed BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    current_price TEXT NOT NULL DEFAULT 'start', -- The current price of the stock, 'start' means start price and 'end' means end price
+    current_price_index INTEGER NOT NULL DEFAULT 0, -- The current price index of the game
     initial_balance BIGINT NOT NULL -- The initial balance of a user in the game in cents
 );
 
@@ -44,8 +44,7 @@ CREATE TABLE IF NOT EXISTS stocks (
     ticker TEXT NOT NULL, -- AAPL etc
     company_name TEXT NOT NULL,
     description TEXT NOT NULL,
-    start_price BIGINT NOT NULL, -- The price of the stock at the start of the game in cents
-    end_price BIGINT NOT NULL, -- The price of the stock at the end of the game in cents
+    prices BIGINT[] NOT NULL, -- The prices of the stock in cents
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -61,7 +60,7 @@ CREATE TABLE IF NOT EXISTS user_transactions (
     user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
     stock_id UUID NOT NULL REFERENCES stock (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    stock_price BIGINT NOT NULL, -- The price of the stock at the time of the transaction in cents
+    price_index INTEGER NOT NULL, -- The price of the stock at the time of the transaction in cents
     amount BIGINT NOT NULL, -- The amount of stocks bought/sold
     action TEXT NOT NULL, -- BUY or SELL
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
