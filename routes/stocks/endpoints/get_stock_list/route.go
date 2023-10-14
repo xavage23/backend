@@ -118,7 +118,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
-			parsedStock.AllPrices = allPrices
+			parsedStock.AllPrices = append(parsedStock.KnownPrices, allPrices...)
 		}
 
 		stockList = append(stockList, parsedStock)

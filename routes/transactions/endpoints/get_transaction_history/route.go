@@ -146,7 +146,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
-			uts[i].Stock.AllPrices = allPrices
+			uts[i].Stock.AllPrices = append(uts[i].Stock.KnownPrices, allPrices...)
 		}
 	}
 

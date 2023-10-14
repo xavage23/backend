@@ -148,7 +148,7 @@ func GetAllStockPrices(ctx context.Context, gameId, ticker string) ([]int64, err
 		return nil, err
 	}
 
-	gameRows, err := state.Pool.Query(ctx, "SELECT game_id FROM games WHERE game_number < $1 ORDER BY game_number ASC LIMIT 1", gameNumber)
+	gameRows, err := state.Pool.Query(ctx, "SELECT id FROM games WHERE game_number < $1 ORDER BY game_number ASC LIMIT 1", gameNumber)
 
 	if err != nil {
 		return nil, err
