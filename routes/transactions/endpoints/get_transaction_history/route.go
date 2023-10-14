@@ -70,6 +70,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	gameId, ok := d.Auth.Data["gameId"].(string)
 
 	if !ok {
+		state.Logger.Error("gameId not found in auth data", d.Auth.Data)
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 

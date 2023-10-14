@@ -76,6 +76,8 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 				}, false
 			}
 
+			data := map[string]any{}
+
 			if req.Header.Get("X-GameUser-ID") != "" {
 				var gameId string
 
@@ -121,7 +123,7 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 					}, false
 				}
 
-				authData.Data = map[string]any{
+				data = map[string]any{
 					"gameId": gameId,
 				}
 			} else {
@@ -138,6 +140,7 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 				ID:         id.String,
 				Authorized: true,
 				Banned:     !enabled,
+				Data:       data,
 			}
 			urlIds = []string{id.String}
 		}
