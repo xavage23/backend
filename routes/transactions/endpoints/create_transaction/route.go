@@ -56,6 +56,34 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
+	// Ensure game allows trading first
+	var tradingAllowed bool
+
+	err := state.Pool.QueryRow(d.Context, "SELECT trading_allowed FROM games WHERE id = $1", gameId).Scan(&tradingAllowed)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uapi.HttpResponse{
+			Status: http.StatusNotFound,
+			Json: types.ApiError{
+				Message: "Game not found",
+			},
+		}
+	}
+
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	if !tradingAllowed {
+		return uapi.HttpResponse{
+			Status: http.StatusBadRequest,
+			Json: types.ApiError{
+				Message: "Trading is not allowed right now",
+			},
+		}
+	}
+
 	var req types.CreateTransaction
 
 	hresp, ok := uapi.MarshalReq(r, &req)
@@ -78,7 +106,6 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	var uts []types.UserTransaction
-	var err error
 
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 

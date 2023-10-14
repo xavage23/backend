@@ -18,3 +18,8 @@ type Stock struct {
 	CreatedAt    time.Time     `db:"created_at" json:"created_at" description:"The time the stock was created"`
 	Ratios       []*StockRatio `db:"-" json:"ratios,omitempty" description:"The ratios of the stock, may not always be present"`
 }
+
+type StockList struct {
+	Stocks     []*Stock `json:"stocks" description:"The list of stocks"`
+	PriceIndex int      `json:"price_index" description:"The price index/snapshot of the stock at the time of the transaction"`
+}

@@ -41,7 +41,7 @@ func Docs() *docs.Doc {
 				Schema:      docs.IdSchema,
 			},
 		},
-		Resp: []types.Stock{},
+		Resp: types.StockList{},
 	}
 }
 
@@ -96,6 +96,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	return uapi.HttpResponse{
-		Json: stockList,
+		Json: types.StockList{
+			Stocks:     stockList,
+			PriceIndex: currentPriceIndex,
+		},
 	}
 }
