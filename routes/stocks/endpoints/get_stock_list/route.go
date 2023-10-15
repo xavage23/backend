@@ -80,11 +80,15 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	if stockId == "" {
 		if state.Redis.Exists(d.Context, "stock_list:"+gameId+"?wpp="+withPriorPrices).Val() > 0 {
-			return uapi.HttpResponse{
-				Data: state.Redis.Get(d.Context, "stock_list:"+gameId).Val(),
-				Headers: map[string]string{
-					"X-Cache": "true",
-				},
+			data := state.Redis.Get(d.Context, "stock_list:"+gameId+"?wpp="+withPriorPrices).Val()
+
+			if data != "" {
+				return uapi.HttpResponse{
+					Data: data,
+					Headers: map[string]string{
+						"X-Cache": "true",
+					},
+				}
 			}
 		}
 	}
