@@ -6,3 +6,5 @@
 ## Note
 
 Panel tables were generated using ``piccolo schema generate > admin/tables.py``, then replacing `default="",` with nothing in the generated file, then making manual fixes
+
+To create a schema diff, do piccolo schema generate > admin/tables.py

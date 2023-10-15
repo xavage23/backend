@@ -134,6 +134,5 @@ export interface User {
   id: string;
   username: string;
   enabled: boolean;
-  root: boolean;
   created_at: string /* RFC3339 */;
 }
