@@ -92,6 +92,7 @@ export interface Stock {
   game_id: string;
   ticker: string;
   company_name: string;
+  description: string;
   current_price: number /* int64 */;
   known_prices: number /* int64 */[];
   prior_prices: PriorPricePoint[];
