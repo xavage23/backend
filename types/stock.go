@@ -1,6 +1,10 @@
 package types
 
-import "time"
+import (
+	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 type StockRatio struct {
 	Name  string  `json:"name" description:"The name of the ratio"`
@@ -28,4 +32,14 @@ type Stock struct {
 type StockList struct {
 	Stocks     []*Stock `json:"stocks" description:"The list of stocks"`
 	PriceIndex int      `json:"price_index" description:"The price index/snapshot of the stock at the time of the transaction"`
+}
+
+type News struct {
+	ID              string      `db:"id" json:"id" description:"The ID of the news"`
+	Title           string      `db:"title" json:"title" description:"The title of the news"`
+	Description     string      `db:"description" json:"description" description:"The description of the news"`
+	AffectedStockID pgtype.UUID `db:"affected_stock_id" json:"affected_stock_id" description:"The ID of the stock affected by the news"`
+	AffectedStock   *Stock      `db:"-" json:"affected_stock" description:"The stock affected by the news, may not always be present"`
+	GameID          string      `db:"game_id" json:"game_id" description:"The ID of the game"`
+	CreatedAt       time.Time   `db:"created_at" json:"created_at" description:"The time the news was created"`
 }

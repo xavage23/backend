@@ -1,4 +1,4 @@
-package get_stock_list
+package get_stock_news
 
 import (
 	"errors"
@@ -18,14 +18,14 @@ import (
 )
 
 var (
-	stocksColsArr = db.GetCols(types.Stock{})
-	stocksCols    = strings.Join(stocksColsArr, ", ")
+	newsColsArr = db.GetCols(types.News{})
+	newsCols    = strings.Join(newsColsArr, ", ")
 )
 
 func Docs() *docs.Doc {
 	return &docs.Doc{
-		Summary:     "Get Stock List",
-		Description: "Gets the list of stocks with their current snapshot prices.",
+		Summary:     "Get Stock News",
+		Description: "Gets the list of news of the stocks with their current snapshot prices.",
 		Params: []docs.Parameter{
 			{
 				Name:        "userId",
@@ -42,14 +42,14 @@ func Docs() *docs.Doc {
 				Schema:      docs.IdSchema,
 			},
 			{
-				Name:        "with_prior_prices",
+				Name:        "with_stocks",
 				In:          "query",
-				Description: "Whether to include the prior prices of the stocks.",
+				Description: "Whether to include stock objects in the response.",
 				Required:    false,
 				Schema:      docs.IdSchema,
 			},
 		},
-		Resp: types.StockList{},
+		Resp: []types.News{},
 	}
 }
 
@@ -70,29 +70,29 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
-	withPriorPrices := r.URL.Query().Get("with_prior_prices")
+	withStocks := r.URL.Query().Get("with_stocks")
 
-	if state.Redis.Exists(d.Context, "stock_list:"+gameId+"?wpp="+withPriorPrices).Val() > 0 {
+	if state.Redis.Exists(d.Context, "news_list:"+gameId+"?ws="+withStocks).Val() > 0 {
 		return uapi.HttpResponse{
-			Data: state.Redis.Get(d.Context, "stock_list:"+gameId).Val(),
+			Data: state.Redis.Get(d.Context, "news_list:"+gameId).Val(),
 			Headers: map[string]string{
 				"X-Cache": "true",
 			},
 		}
 	}
 
-	rows, err := state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE game_id = $1 ORDER BY created_at DESC", gameId)
+	rows, err := state.Pool.Query(d.Context, "SELECT "+newsCols+" FROM news WHERE game_id = $1 ORDER BY created_at DESC", gameId)
 
 	if err != nil {
 		state.Logger.Error(err)
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	stocks, err := pgx.CollectRows(rows, pgx.RowToStructByName[types.Stock])
+	news, err := pgx.CollectRows(rows, pgx.RowToStructByName[types.News])
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{
-			Json: []types.Stock{},
+			Json: []types.News{},
 		}
 	}
 
@@ -101,37 +101,41 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
+	if withStocks == "true" {
+		currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
-	if err != nil {
-		state.Logger.Error(err)
-		return uapi.DefaultResponse(http.StatusInternalServerError)
-	}
+		if err != nil {
+			state.Logger.Error(err)
+			return uapi.DefaultResponse(http.StatusInternalServerError)
+		}
 
-	var stockList []*types.Stock
-	for i := range stocks {
-		parsedStock := transact.ParseStock(d.Context, &stocks[i], currentPriceIndex)
-
-		if withPriorPrices == "true" {
-			pp, err := transact.GetPriorStockPrices(d.Context, gameId, parsedStock.Ticker)
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
+		var cachedStocks = make(map[[16]byte]*types.Stock)
+		for i := range news {
+			if !news[i].AffectedStockID.Valid {
+				continue
 			}
 
-			parsedStock.PriorPrices = pp
-		}
+			cachedStock, ok := cachedStocks[news[i].AffectedStockID.Bytes]
 
-		stockList = append(stockList, parsedStock)
+			if ok {
+				news[i].AffectedStock = cachedStock
+			} else {
+				stock, err := transact.GetStock(d.Context, transact.ConvertUUIDToString(news[i].AffectedStockID.Bytes), currentPriceIndex)
+
+				if err != nil {
+					state.Logger.Error(err)
+					return uapi.DefaultResponse(http.StatusInternalServerError)
+				}
+
+				news[i].AffectedStock = stock
+				cachedStocks[news[i].AffectedStockID.Bytes] = stock
+			}
+		}
 	}
 
 	return uapi.HttpResponse{
-		Json: types.StockList{
-			Stocks:     stockList,
-			PriceIndex: currentPriceIndex,
-		},
-		CacheKey:  "stock_list:" + gameId + "?wpp=" + withPriorPrices,
+		Json:      news,
+		CacheKey:  "news_list:" + gameId + "?ws=" + withStocks,
 		CacheTime: 30 * time.Second,
 	}
 }

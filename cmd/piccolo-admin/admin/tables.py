@@ -399,52 +399,6 @@ class Sessions(Table, tablename="sessions"):
     )
 
 
-class News(Table, tablename="news"):
-    id = UUID(
-        default=UUID4(),
-        null=False,
-        primary_key=True,
-        unique=False,
-        index=True,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-    title = Text(
-        default="",
-        null=False,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-    game_id = ForeignKey(
-        references=Games,
-        on_delete=OnDelete.cascade,
-        on_update=OnUpdate.cascade,
-        target_column="id",
-        null=False,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-    created_at = Timestamptz(
-        default=TimestamptzNow(),
-        null=False,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-    )
-
-
 class Stocks(Table, tablename="stocks"):
     @classmethod
     def get_readable(cls):
@@ -514,6 +468,76 @@ class Stocks(Table, tablename="stocks"):
         db_column_name=None,
         secret=False,
         help_text="Price is in cents, not dollars"
+    )
+    created_at = Timestamptz(
+        default=TimestamptzNow(),
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+
+
+class News(Table, tablename="news"):
+    id = UUID(
+        default=UUID4(),
+        null=False,
+        primary_key=True,
+        unique=False,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    title = Text(
+        default="",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    description = Text(
+        default="",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    affected_stock_id = ForeignKey(
+        references=Stocks,
+        on_delete=OnDelete.cascade,
+        on_update=OnUpdate.cascade,
+        target_column="id",
+        null=True,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        help_text="If null, then this news is general news that affects all stocks"
+    )
+    game_id = ForeignKey(
+        references=Games,
+        on_delete=OnDelete.cascade,
+        on_update=OnUpdate.cascade,
+        target_column="id",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
     )
     created_at = Timestamptz(
         default=TimestamptzNow(),

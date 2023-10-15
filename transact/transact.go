@@ -3,6 +3,7 @@ package transact
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"xavagebb/db"
 	"xavagebb/state"
@@ -21,6 +22,10 @@ var (
 	gameColsArr = db.GetCols(types.Game{})
 	gameCols    = strings.Join(gameColsArr, ", ")
 )
+
+func ConvertUUIDToString(uuid [16]byte) string {
+	return fmt.Sprintf("%x-%x-%x-%x-%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:16])
+}
 
 func GetCurrentPriceIndex(ctx context.Context, gameId string) (int, error) {
 	var gameCurrentPriceIndex int
