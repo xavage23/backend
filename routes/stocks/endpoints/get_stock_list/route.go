@@ -111,14 +111,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		parsedStock := transact.ParseStock(d.Context, &stocks[i], currentPriceIndex)
 
 		if r.URL.Query().Get("with_prior_prices") == "true" {
-			allPrices, err := transact.GetAllStockPrices(d.Context, gameId, parsedStock.Ticker)
+			pp, err := transact.GetPriorStockPrices(d.Context, gameId, parsedStock.Ticker)
 
 			if err != nil {
 				state.Logger.Error(err)
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
-			parsedStock.AllPrices = append(parsedStock.KnownPrices, allPrices...)
+			parsedStock.PriorPrices = pp
 		}
 
 		stockList = append(stockList, parsedStock)

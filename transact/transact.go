@@ -17,6 +17,9 @@ var (
 
 	stockColsArr = db.GetCols(types.Stock{})
 	stockCols    = strings.Join(stockColsArr, ", ")
+
+	gameColsArr = db.GetCols(types.Game{})
+	gameCols    = strings.Join(gameColsArr, ", ")
 )
 
 func GetCurrentPriceIndex(ctx context.Context, gameId string) (int, error) {
@@ -139,7 +142,7 @@ func ParseStock(ctx context.Context, stock *types.Stock, currentPriceIndex int) 
 	return stock
 }
 
-func GetAllStockPrices(ctx context.Context, gameId, ticker string) ([]int64, error) {
+func GetPriorStockPrices(ctx context.Context, gameId, ticker string) ([]types.PriorPricePoint, error) {
 	// Get game number of current game
 	var gameNumber int
 
@@ -149,38 +152,37 @@ func GetAllStockPrices(ctx context.Context, gameId, ticker string) ([]int64, err
 		return nil, err
 	}
 
-	gameRows, err := state.Pool.Query(ctx, "SELECT id FROM games WHERE game_number < $1 ORDER BY game_number ASC LIMIT 1", gameNumber)
+	gameRows, err := state.Pool.Query(ctx, "SELECT "+gameCols+" FROM games WHERE game_number < $1 ORDER BY game_number ASC LIMIT 1", gameNumber)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var gameIds []string
-	for gameRows.Next() {
-		// Fetch all game IDs
-		var gameId string
+	games, err := pgx.CollectRows(gameRows, pgx.RowToStructByName[types.Game])
 
-		err = gameRows.Scan(&gameId)
-
-		if err != nil {
-			return nil, err
-		}
-
-		gameIds = append(gameIds, gameId)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return []types.PriorPricePoint{}, nil
 	}
 
-	var allPrices []int64
-	for _, gameRows := range gameIds {
+	if err != nil {
+		return nil, err
+	}
+
+	var allPrices []types.PriorPricePoint
+	for _, game := range games {
 		// Fetch prices within this game ID
 		var prices []int64
 
-		err = state.Pool.QueryRow(ctx, "SELECT prices FROM stocks WHERE game_id = $1 AND ticker = $2", gameRows, ticker).Scan(&prices)
+		err = state.Pool.QueryRow(ctx, "SELECT prices FROM stocks WHERE game_id = $1 AND ticker = $2", game.ID, ticker).Scan(&prices)
 
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			return nil, err
 		}
 
-		allPrices = append(allPrices, prices...)
+		allPrices = append(allPrices, types.PriorPricePoint{
+			Game:   game,
+			Prices: prices,
+		})
 	}
 
 	return allPrices, nil

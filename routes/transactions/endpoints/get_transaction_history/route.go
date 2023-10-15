@@ -139,14 +139,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	if r.URL.Query().Get("with_prior_prices") == "true" {
 		for i := range uts {
-			allPrices, err := transact.GetAllStockPrices(d.Context, gameId, uts[i].Stock.Ticker)
+			pp, err := transact.GetPriorStockPrices(d.Context, gameId, uts[i].Stock.Ticker)
 
 			if err != nil {
 				state.Logger.Error(err)
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
-			uts[i].Stock.AllPrices = append(uts[i].Stock.KnownPrices, allPrices...)
+			uts[i].Stock.PriorPrices = pp
 		}
 	}
 
