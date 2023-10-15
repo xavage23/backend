@@ -197,7 +197,7 @@ func GetPriorStockPrices(ctx context.Context, gameId, ticker string) ([]types.Pr
 		return nil, err
 	}
 
-	var allPrices []types.PriorPricePoint
+	var allPrices = []types.PriorPricePoint{}
 	for _, game := range games {
 		// Fetch prices within this game ID
 		var prices []int64
