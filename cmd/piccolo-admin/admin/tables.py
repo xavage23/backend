@@ -172,7 +172,7 @@ class Users(Table, tablename="users"):
         index=True,
         index_method=IndexMethod.btree,
         db_column_name=None,
-        secret=False,
+        secret=True,
     )
     enabled = Boolean(
         default=True,

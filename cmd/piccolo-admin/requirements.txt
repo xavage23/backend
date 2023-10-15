@@ -1,2 +1,5 @@
-piccolo[all]
+piccolo[all]==1.0a2
+piccolo-api==1.0a2
 piccolo-admin
+argon2-cffi
+xkcdpass

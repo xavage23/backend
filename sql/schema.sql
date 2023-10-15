@@ -2,9 +2,9 @@ create extension if not exists "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL UNIQUE, -- Argon2id hashed password
-    token TEXT NOT NULL UNIQUE, -- API token
+    username TEXT NOT NULL UNIQUE CHECK (username <> ''),
+    password TEXT NOT NULL UNIQUE CHECK (password <> ''), -- Argon2id hashed password
+    token TEXT NOT NULL UNIQUE CHECK (token <> ''), -- API token
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
     root BOOLEAN NOT NULL DEFAULT FALSE, -- Whether or not the user is 'root' (admin)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

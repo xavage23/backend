@@ -3,28 +3,24 @@ package adduser
 import (
 	"admintool-cli/common"
 	"fmt"
+	"strings"
 	"xavagebb/state"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/infinitybotlist/eureka/crypto"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"golang.org/x/exp/slices"
 )
 
 func CreateUser(progname string, args []string) {
-	var isAdmin bool
-
-	if slices.Contains(args, "-a") || slices.Contains(args, "--admin") {
-		isAdmin = true
-	}
-
 	var name string
 
 	for _, arg := range args {
-		if arg != "-a" || arg == "--admin" {
-			name = arg
-			break
+		if strings.HasPrefix(arg, "-") {
+			continue
 		}
+
+		name = arg
+		break
 	}
 
 	if name == "" {
@@ -32,7 +28,6 @@ func CreateUser(progname string, args []string) {
 	}
 
 	fmt.Println("Got name:", name)
-	fmt.Println("Is admin:", isAdmin)
 
 	for {
 		check := common.AskInput("Is this correct? [y/n] ")
@@ -66,7 +61,7 @@ func CreateUser(progname string, args []string) {
 	}
 
 	var id string
-	err = pool.QueryRow(state.Context, "INSERT INTO users (username, password, root, token) VALUES ($1, $2, $3, $4) RETURNING id", name, argon2hash, isAdmin, token).Scan(&id)
+	err = pool.QueryRow(state.Context, "INSERT INTO users (username, password, token) VALUES ($1, $2, $3, $4) RETURNING id", name, argon2hash, token).Scan(&id)
 
 	if err != nil {
 		common.Fatal(err)

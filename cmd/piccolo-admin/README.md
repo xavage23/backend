@@ -2,6 +2,7 @@
 
 1. Run ``piccolo migrations forwards user`` to apply the migrations for users, then apply sessions migrations with ``piccolo migrations forwards session_auth``
 2. If using systemd, a known working ExecCommand is ``/home/xavage/.local/bin/uvicorn admin.app:app --port 1922``
+3. Create admin users with ``piccolo user create``
 
 ## Note
 
