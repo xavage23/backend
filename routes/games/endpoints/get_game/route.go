@@ -44,7 +44,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
-	row, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1 OR code = $1", gameId)
+	row, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1", gameId)
 
 	if err != nil {
 		state.Logger.Error(err)
