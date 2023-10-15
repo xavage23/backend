@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-	"time"
 
 	"xavagebb/db"
 	"xavagebb/state"
@@ -78,21 +77,6 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	withPriorPrices := r.URL.Query().Get("with_prior_prices")
 	stockId := r.URL.Query().Get("stock_id")
 
-	if stockId == "" {
-		if state.Redis.Exists(d.Context, "stock_list:"+gameId+"?wpp="+withPriorPrices).Val() > 0 {
-			data := state.Redis.Get(d.Context, "stock_list:"+gameId+"?wpp="+withPriorPrices).Val()
-
-			if data != "" {
-				return uapi.HttpResponse{
-					Data: data,
-					Headers: map[string]string{
-						"X-Cache": "true",
-					},
-				}
-			}
-		}
-	}
-
 	var rows pgx.Rows
 	var err error
 
@@ -157,13 +141,5 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			Stocks:     stockList,
 			PriceIndex: currentPriceIndex,
 		},
-		CacheKey: func() string {
-			if stockId != "" {
-				return ""
-			}
-
-			return "stock_list:" + gameId + "?wpp=" + withPriorPrices
-		}(),
-		CacheTime: 30 * time.Second,
 	}
 }
