@@ -1,4 +1,4 @@
-package get_stock_list
+package get_stock
 
 import (
 	"errors"
@@ -23,13 +23,20 @@ var (
 
 func Docs() *docs.Doc {
 	return &docs.Doc{
-		Summary:     "Get Stock List",
-		Description: "Gets the list of stocks with their current snapshot prices.",
+		Summary:     "Get Stock",
+		Description: "Gets a stock based on its ID returning *all* fields.",
 		Params: []docs.Parameter{
 			{
 				Name:        "userId",
 				In:          "path",
 				Description: "The ID of the user",
+				Required:    true,
+				Schema:      docs.IdSchema,
+			},
+			{
+				Name:        "stockId",
+				In:          "path",
+				Description: "The stock ID.",
 				Required:    true,
 				Schema:      docs.IdSchema,
 			},
@@ -40,13 +47,6 @@ func Docs() *docs.Doc {
 				Required:    true,
 				Schema:      docs.IdSchema,
 			},
-			{
-				Name:        "with_prior_prices",
-				In:          "query",
-				Description: "Whether to include the prior prices of stocks. If using this, a stock_id must be provided.",
-				Required:    false,
-				Schema:      docs.IdSchema,
-			},
 		},
 		Resp: types.StockList{},
 	}
@@ -54,6 +54,7 @@ func Docs() *docs.Doc {
 
 func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	userId := chi.URLParam(r, "userId")
+	stockId := chi.URLParam(r, "stockId")
 	gameId, ok := d.Auth.Data["gameId"].(string)
 
 	if !ok {
@@ -65,20 +66,22 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
+	if stockId == "" {
+		return uapi.DefaultResponse(http.StatusBadRequest)
+	}
+
 	if gameId == "" {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
-	withPriorPrices := r.URL.Query().Get("with_prior_prices")
-
-	rows, err := state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE game_id = $1 ORDER BY created_at DESC", gameId)
+	rows, err := state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE id = $1 AND game_id = $2 ORDER BY created_at DESC", stockId, gameId)
 
 	if err != nil {
 		state.Logger.Error(err)
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	stocks, err := pgx.CollectRows(rows, pgx.RowToStructByName[types.Stock])
+	stock, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[types.Stock])
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{
@@ -91,11 +94,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	var included []string = []string{}
-
-	if withPriorPrices == "true" {
-		included = append(included, "prior_prices")
-	}
+	included := []string{"prior_prices"}
 
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
@@ -104,29 +103,19 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	var stockList []*types.Stock
-	for i := range stocks {
-		parsedStock := transact.ParseStock(d.Context, &stocks[i], currentPriceIndex)
+	parsedStock := transact.ParseStock(d.Context, &stock, currentPriceIndex)
 
-		if withPriorPrices == "true" {
-			pp, err := transact.GetPriorStockPrices(d.Context, gameId, parsedStock.Ticker)
+	pp, err := transact.GetPriorStockPrices(d.Context, gameId, parsedStock.Ticker)
 
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			parsedStock.PriorPrices = pp
-			parsedStock.Includes = included
-		}
-
-		stockList = append(stockList, parsedStock)
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
+	parsedStock.PriorPrices = pp
+	parsedStock.Includes = included
+
 	return uapi.HttpResponse{
-		Json: types.StockList{
-			Stocks:     stockList,
-			PriceIndex: currentPriceIndex,
-		},
+		Json: parsedStock,
 	}
 }

@@ -157,7 +157,7 @@ func GetPriorStockPrices(ctx context.Context, gameId, ticker string) ([]types.Pr
 	if cachedData != nil {
 		val, err := cachedData.Result()
 
-		if err == nil {
+		if err == nil && val != "" {
 			var allPrices []types.PriorPricePoint
 
 			err = json.Unmarshal([]byte(val), &allPrices)

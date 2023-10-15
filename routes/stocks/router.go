@@ -2,6 +2,7 @@ package stocks
 
 import (
 	"xavagebb/api"
+	"xavagebb/routes/stocks/endpoints/get_stock"
 	"xavagebb/routes/stocks/endpoints/get_stock_list"
 	"xavagebb/routes/stocks/endpoints/get_stock_news"
 
@@ -24,6 +25,20 @@ func (b Router) Routes(r *chi.Mux) {
 		Method:  uapi.GET,
 		Docs:    get_stock_list.Docs,
 		Handler: get_stock_list.Route,
+		Auth: []uapi.AuthType{
+			{
+				URLVar: "userId",
+				Type:   api.TargetTypeUser,
+			},
+		},
+	}.Route(r)
+
+	uapi.Route{
+		Pattern: "/users/{userId}/stocks/{stockId}",
+		OpId:    "get_stock",
+		Method:  uapi.GET,
+		Docs:    get_stock.Docs,
+		Handler: get_stock.Route,
 		Auth: []uapi.AuthType{
 			{
 				URLVar: "userId",
