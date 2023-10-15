@@ -54,7 +54,7 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
-    description = Text(
+    name = Text(
         default="",
         null=False,
         primary_key=False,

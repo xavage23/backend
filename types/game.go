@@ -9,7 +9,7 @@ type Game struct {
 	Code               string    `db:"code" json:"code" description:"The code of the game"`
 	Enabled            bool      `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
 	TradingAllowed     bool      `db:"trading_allowed" json:"trading_enabled" description:"Whether trading is enabled"`
-	Description        string    `db:"description" json:"description" description:"The description of the game"`
+	Name               string    `db:"name" json:"name" description:"The name of the game"`
 	CreatedAt          time.Time `db:"created_at" json:"created_at" description:"The time the game was created"`
 	CurrentPriceIndex  int       `db:"current_price_index" json:"current_price_index" description:"The current price index of the game"`
 	InitialBalance     int64     `db:"initial_balance" json:"initial_balance" description:"The initial balance of the game"`
