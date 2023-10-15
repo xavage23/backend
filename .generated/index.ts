@@ -97,10 +97,20 @@ export interface Stock {
   prior_prices: PriorPricePoint[];
   created_at: string /* RFC3339 */;
   ratios?: (StockRatio | undefined)[];
+  includes?: string[];
 }
 export interface StockList {
   stocks: (Stock | undefined)[];
   price_index: number /* int */;
+}
+export interface News {
+  id: string;
+  title: string;
+  description: string;
+  affected_stock_id: string /* uuid */;
+  affected_stock?: Stock;
+  game_id: string;
+  created_at: string /* RFC3339 */;
 }
 
 //////////

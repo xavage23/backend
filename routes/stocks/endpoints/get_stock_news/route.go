@@ -127,6 +127,16 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 					return uapi.DefaultResponse(http.StatusInternalServerError)
 				}
 
+				priceHistory, err := transact.GetPriorStockPrices(d.Context, gameId, stock.ID)
+
+				if err != nil {
+					state.Logger.Error(err)
+					return uapi.DefaultResponse(http.StatusInternalServerError)
+				}
+
+				stock.PriorPrices = priceHistory
+				stock.Includes = []string{"prior_prices"}
+
 				news[i].AffectedStock = stock
 				cachedStocks[news[i].AffectedStockID.Bytes] = stock
 			}

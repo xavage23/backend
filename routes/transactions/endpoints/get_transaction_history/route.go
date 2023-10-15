@@ -53,13 +53,6 @@ func Docs() *docs.Doc {
 				Required:    false,
 				Schema:      docs.IdSchema,
 			},
-			{
-				Name:        "with_prior_prices",
-				In:          "query",
-				Description: "Whether to include the prior prices of the stocks.",
-				Required:    false,
-				Schema:      docs.IdSchema,
-			},
 		},
 		Resp: []types.UserTransaction{},
 	}
@@ -137,17 +130,16 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		}
 	}
 
-	if r.URL.Query().Get("with_prior_prices") == "true" {
-		for i := range uts {
-			pp, err := transact.GetPriorStockPrices(d.Context, gameId, uts[i].Stock.Ticker)
+	for i := range uts {
+		pp, err := transact.GetPriorStockPrices(d.Context, gameId, uts[i].Stock.Ticker)
 
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			uts[i].Stock.PriorPrices = pp
+		if err != nil {
+			state.Logger.Error(err)
+			return uapi.DefaultResponse(http.StatusInternalServerError)
 		}
+
+		uts[i].Stock.PriorPrices = pp
+		uts[i].Stock.Includes = []string{"prior_prices"}
 	}
 
 	return uapi.HttpResponse{

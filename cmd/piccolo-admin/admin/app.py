@@ -1,5 +1,6 @@
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
+import redis
 from admin.piccolo_app import APP_CONFIG
 from admin.tables import Users as UserTable
 
@@ -10,6 +11,9 @@ from starlette.routing import Mount
 from argon2 import PasswordHasher
 from xkcdpass import xkcd_password as xp
 import random
+import redis.asyncio as redis
+
+redis_cli = redis.ConnectionPool.from_url("redis://localhost:6379/3")
 
 def gen_pass() -> str:
     wordfile = xp.locate_wordfile()
@@ -117,6 +121,34 @@ class RenameUser(BaseModel):
 
         return "Username updated."
 
+class RedisClearCacheKey(BaseModel):
+    key: str
+
+    @staticmethod
+    async def action(request: Request, data: "RedisClearCacheKey"):
+        if not data.key:
+            raise ValueError("Key cannot be empty")
+
+        # Clear key
+        conn = redis.Redis.from_pool(redis_cli)
+        await conn.delete(data.key)
+
+        return "Key cleared."
+
+class FlushRedisCache(BaseModel):
+    confirm: bool
+
+    @staticmethod
+    async def action(request: Request, data: "FlushRedisCache"):
+        if not data.confirm:
+            raise ValueError("Confirmation must be true")
+
+        # Clear key
+        conn = redis.Redis.from_pool(redis_cli)
+        await conn.flushdb()
+
+        return "Redis cache cleared."
+
 app = FastAPI(
     routes=[
         Mount(
@@ -142,6 +174,23 @@ app = FastAPI(
                         endpoint=RenameUser.action,
                         description="Renames a user. Only use this to rename users as using the users table directly will not hash the password."
                     ),
+                    FormConfig(
+                        name="Redis Clear Cache Key",
+                        pydantic_model=RedisClearCacheKey,
+                        endpoint=RedisClearCacheKey.action,
+                        description="""
+Clears a key from the Redis cache. E.g.
+
+prior_stock_prices:{game_id}:{ticker} to clear the prior stock prices cache for a game and ticker.
+stock_list:{game_id}:?wpp={true/false} to clear the stock list cache for a game and whether to include prior prices for stocks.
+"""
+                    ),
+                    FormConfig(
+                        name="Flush Redis Cache",
+                        pydantic_model=FlushRedisCache,
+                        endpoint=FlushRedisCache.action,
+                        description="Flushes the Redis cache. This will clear all cached data."
+                    ),
                 ],
                 # Required when running under HTTPS:
                 production=True,
@@ -166,6 +215,7 @@ async def close_database_connection_pool():
     try:
         engine = engine_finder()
         await engine.close_connection_pool()
+        await redis_cli.aclose()
     except Exception:
         print("Unable to connect to the database")
         exit(1)

@@ -27,6 +27,7 @@ type Stock struct {
 	PriorPrices  []PriorPricePoint `db:"-" json:"prior_prices" description:"The prices of the stock in cents"`
 	CreatedAt    time.Time         `db:"created_at" json:"created_at" description:"The time the stock was created"`
 	Ratios       []*StockRatio     `db:"-" json:"ratios,omitempty" description:"The ratios of the stock, may not always be present"`
+	Includes     []string          `db:"-" json:"includes,omitempty" description:"The included data present in this stock"`
 }
 
 type StockList struct {

@@ -44,9 +44,14 @@ func Docs() *docs.Doc {
 			{
 				Name:        "with_prior_prices",
 				In:          "query",
-				Description: "Whether to include the prior prices of the stocks.",
+				Description: "Whether to include the prior prices of stocks. If using this, a stock_id must be provided.",
 				Required:    false,
 				Schema:      docs.IdSchema,
+			},
+			{
+				Name:        "stock_id",
+				In:          "query",
+				Description: "The ID of the stock to get. If this is not provided, all stocks will be returned.",
 			},
 		},
 		Resp: types.StockList{},
@@ -71,13 +76,16 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	withPriorPrices := r.URL.Query().Get("with_prior_prices")
+	stockId := r.URL.Query().Get("stock_id")
 
-	if state.Redis.Exists(d.Context, "stock_list:"+gameId+"?wpp="+withPriorPrices).Val() > 0 {
-		return uapi.HttpResponse{
-			Data: state.Redis.Get(d.Context, "stock_list:"+gameId).Val(),
-			Headers: map[string]string{
-				"X-Cache": "true",
-			},
+	if stockId == "" {
+		if state.Redis.Exists(d.Context, "stock_list:"+gameId+"?wpp="+withPriorPrices).Val() > 0 {
+			return uapi.HttpResponse{
+				Data: state.Redis.Get(d.Context, "stock_list:"+gameId).Val(),
+				Headers: map[string]string{
+					"X-Cache": "true",
+				},
+			}
 		}
 	}
 
@@ -101,6 +109,12 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
+	var included []string = []string{}
+
+	if withPriorPrices == "true" {
+		included = append(included, "prior_prices")
+	}
+
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
 	if err != nil {
@@ -121,6 +135,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			}
 
 			parsedStock.PriorPrices = pp
+			parsedStock.Includes = included
 		}
 
 		stockList = append(stockList, parsedStock)

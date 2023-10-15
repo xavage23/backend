@@ -3,3 +3,4 @@ piccolo-api==1.0a2
 piccolo-admin
 argon2-cffi
 xkcdpass
+redis[hiredis]

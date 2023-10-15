@@ -17,7 +17,7 @@ type Sites struct {
 
 type Meta struct {
 	PostgresURL    string   `yaml:"postgres_url" default:"postgresql:///xavage" comment:"Postgres URL" validate:"required"`
-	RedisURL       string   `yaml:"redis_url" default:"redis://localhost:6379" comment:"Redis URL" validate:"required"`
+	RedisURL       string   `yaml:"redis_url" default:"redis://localhost:6379/3" comment:"Redis URL" validate:"required"`
 	Port           string   `yaml:"port" default:":8081" comment:"Port to run the server on" validate:"required"`
 	CDNPath        string   `yaml:"cdn_path" default:"/silverpelt/cdn/ibl" comment:"CDN Path" validate:"required"`
 	VulgarList     []string `yaml:"vulgar_list" default:"fuck,suck,shit,kill" validate:"required"`

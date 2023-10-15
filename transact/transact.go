@@ -5,14 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"xavagebb/db"
 	"xavagebb/state"
 	"xavagebb/types"
 
 	"github.com/jackc/pgx/v5"
+	jsoniter "github.com/json-iterator/go"
 )
 
 var (
+	json                   = jsoniter.ConfigFastest
 	userTransactionColsArr = db.GetCols(types.UserTransaction{})
 	userTransactionCols    = strings.Join(userTransactionColsArr, ", ")
 
@@ -148,6 +151,27 @@ func ParseStock(ctx context.Context, stock *types.Stock, currentPriceIndex int) 
 }
 
 func GetPriorStockPrices(ctx context.Context, gameId, ticker string) ([]types.PriorPricePoint, error) {
+	// Check cache first for prior stock prices
+	cachedData := state.Redis.Get(ctx, "prior_stock_prices:"+gameId+":"+ticker)
+
+	if cachedData != nil {
+		val, err := cachedData.Result()
+
+		if err == nil {
+			var allPrices []types.PriorPricePoint
+
+			err = json.Unmarshal([]byte(val), &allPrices)
+
+			if err != nil {
+				return nil, err
+			}
+
+			return allPrices, nil
+		} else {
+			state.Logger.Error("Failed to get prior stock prices from cache", err)
+		}
+	}
+
 	// Get game number of current game
 	var gameNumber int
 
@@ -188,6 +212,19 @@ func GetPriorStockPrices(ctx context.Context, gameId, ticker string) ([]types.Pr
 			Game:   game,
 			Prices: prices,
 		})
+	}
+
+	// Cache prior stock prices
+	cacheStr, err := json.MarshalToString(allPrices)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = state.Redis.Set(ctx, "prior_stock_prices:"+gameId+":"+ticker, cacheStr, 1*time.Minute).Err()
+
+	if err != nil {
+		return nil, err
 	}
 
 	return allPrices, nil
