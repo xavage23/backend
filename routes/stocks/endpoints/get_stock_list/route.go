@@ -89,7 +89,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		}
 	}
 
-	rows, err := state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE game_id = $1 ORDER BY created_at DESC", gameId)
+	var rows pgx.Rows
+	var err error
+
+	if stockId != "" {
+		rows, err = state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE game_id = $1 AND id = $2 ORDER BY created_at DESC", gameId, stockId)
+	} else {
+		rows, err = state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE game_id = $1 ORDER BY created_at DESC", gameId)
+	}
 
 	if err != nil {
 		state.Logger.Error(err)
@@ -146,7 +153,13 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			Stocks:     stockList,
 			PriceIndex: currentPriceIndex,
 		},
-		CacheKey:  "stock_list:" + gameId + "?wpp=" + withPriorPrices,
+		CacheKey: func() string {
+			if stockId != "" {
+				return ""
+			}
+
+			return "stock_list:" + gameId + "?wpp=" + withPriorPrices
+		}(),
 		CacheTime: 30 * time.Second,
 	}
 }
