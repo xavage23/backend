@@ -80,7 +80,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	var initialBalance int
 	var enabled bool
 
-	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance, enabled, passphrase FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance, &enabled)
+	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance, enabled FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance, &enabled)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{
