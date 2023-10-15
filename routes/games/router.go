@@ -20,18 +20,11 @@ func (b Router) Tag() (string, string) {
 
 func (b Router) Routes(r *chi.Mux) {
 	uapi.Route{
-		Pattern: "/users/{userId}/games/{gameId}",
+		Pattern: "/games/{gameId}",
 		OpId:    "get_game",
 		Method:  uapi.GET,
 		Docs:    get_game.Docs,
 		Handler: get_game.Route,
-		Auth: []uapi.AuthType{
-			{
-				URLVar:       "userId",
-				Type:         api.TargetTypeUser,
-				AllowedScope: "notingame",
-			},
-		},
 	}.Route(r)
 
 	uapi.Route{

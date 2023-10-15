@@ -180,13 +180,6 @@ func GetAllStockPrices(ctx context.Context, gameId, ticker string) ([]int64, err
 			return nil, err
 		}
 
-		// Reverse prices
-		if len(prices) > 0 {
-			for i, j := 0, len(prices)-1; i < j; i, j = i+1, j-1 {
-				prices[i], prices[j] = prices[j], prices[i]
-			}
-		}
-
 		allPrices = append(allPrices, prices...)
 	}
 

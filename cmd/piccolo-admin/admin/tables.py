@@ -84,6 +84,17 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
+    old_stocks_carry_over = Boolean(        
+        default=False,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        help_text="Whether or not all old stocks from prior games must also be present in this game"
+    )
     created_at = Timestamptz(
         default=TimestamptzNow(),
         null=False,

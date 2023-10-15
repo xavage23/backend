@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS games (
     description TEXT NOT NULL UNIQUE CHECK (description <> ''), -- Game description
     enabled BOOLEAN NOT NULL DEFAULT FALSE,
     trading_allowed BOOLEAN NOT NULL DEFAULT FALSE,
+    old_stocks_carry_over BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not stocks from previous games must carry over
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     current_price_index INTEGER NOT NULL DEFAULT 0, -- The current price index of the game
     initial_balance BIGINT NOT NULL -- The initial balance of a user in the game in cents

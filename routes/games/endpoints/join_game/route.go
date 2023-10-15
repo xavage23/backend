@@ -79,8 +79,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	var gameId string
 	var initialBalance int
 	var enabled bool
+	var oldStocksCarryOver bool
 
-	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance, enabled FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance, &enabled)
+	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance, enabled, old_stocks_carry_over FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance, &enabled, &oldStocksCarryOver)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{
@@ -227,6 +228,17 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			var stockId string
 
 			err = tx.QueryRow(d.Context, "SELECT id FROM stocks WHERE game_id = $1 AND ticker = (SELECT ticker FROM stocks WHERE id = $2)", gameId, utid.StockId).Scan(&stockId)
+
+			if errors.Is(err, pgx.ErrNoRows) {
+				if oldStocksCarryOver {
+					return uapi.HttpResponse{
+						Status: http.StatusInternalServerError,
+						Json:   types.ApiError{Message: "This game has old stocks carry over enabled but the transaction on stock with id " + utid.StockId + " does not have an equivalent ticker in the new game!"},
+					}
+				}
+
+				continue
+			}
 
 			if err != nil {
 				state.Logger.Error("utid id select", err, utid)
