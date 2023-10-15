@@ -16,6 +16,7 @@ app = FastAPI(
             create_admin(
                 tables=[t for t in APP_CONFIG.table_classes if t._meta.tablename not in ("sessions", "migration", "piccolo_user")],
                 # Required when running under HTTPS:
+                production=True,
                 allowed_hosts=['stocksim2-admin.narc.live']
             )
         ),

@@ -61,10 +61,12 @@ CREATE TABLE IF NOT EXISTS user_transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    origin_game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE RESTRICT,
     stock_id UUID NOT NULL REFERENCES stock (id) ON UPDATE CASCADE ON DELETE CASCADE,
     price_index INTEGER NOT NULL, -- The price of the stock at the time of the transaction in cents
     sale_price BIGINT NOT NULL, -- The price of the stock at the time of the transaction in cents
     amount BIGINT NOT NULL, -- The amount of stocks bought/sold
     action TEXT NOT NULL, -- BUY or SELL
+    past BOOLEAN NOT NULL DEFAULT FALSE, -- Whether or not the transaction is in the past (from a previous game)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

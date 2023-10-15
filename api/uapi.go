@@ -123,6 +123,30 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 					}, false
 				}
 
+				var enabled bool
+				err = state.Pool.QueryRow(state.Context, "SELECT enabled FROM games WHERE id = $1", gameId).Scan(&enabled)
+
+				if errors.Is(err, pgx.ErrNoRows) {
+					return uapi.AuthData{}, uapi.HttpResponse{
+						Status: http.StatusForbidden,
+						Json:   types.ApiError{Message: "This game does not exist!"},
+					}, false
+				}
+
+				if err != nil {
+					return uapi.AuthData{}, uapi.HttpResponse{
+						Status: http.StatusForbidden,
+						Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
+					}, false
+				}
+
+				if !enabled {
+					return uapi.AuthData{}, uapi.HttpResponse{
+						Status: http.StatusForbidden,
+						Json:   types.ApiError{Message: "This game is (no longer) enabled!"},
+					}, false
+				}
+
 				data = map[string]any{
 					"gameId": gameId,
 				}

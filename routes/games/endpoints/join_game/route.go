@@ -78,8 +78,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	// Check that the game exists with the current code and passphrase
 	var gameId string
 	var initialBalance int
+	var enabled bool
 
-	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance)
+	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance, enabled, passphrase FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance, &enabled)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{
@@ -91,6 +92,13 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	if err != nil {
 		state.Logger.Error(err)
 		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	if !enabled {
+		return uapi.HttpResponse{
+			Status: http.StatusForbidden,
+			Json:   types.ApiError{Message: "This game is not enabled and thus cannot be joined!"},
+		}
 	}
 
 	// Check that the user is allowed to join the game
@@ -188,7 +196,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	for _, oldGameId := range gameIds {
-		rows, err := tx.Query(d.Context, "INSERT INTO user_transactions (user_id, game_id, stock_id, price_index, amount, action, sale_price) SELECT $1, $2, stock_id, price_index, amount, action, sale_price FROM user_transactions WHERE game_id = $3 AND user_id = $4 RETURNING id, stock_id", d.Auth.ID, gameId, oldGameId, d.Auth.ID)
+		rows, err := tx.Query(d.Context, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price, past) SELECT $1, $2, origin_game_id, stock_id, price_index, amount, action, sale_price, $3 FROM user_transactions WHERE game_id = $4 AND user_id = $5 RETURNING id, stock_id", d.Auth.ID, gameId, true, oldGameId, d.Auth.ID)
 
 		if err != nil {
 			state.Logger.Error("couldnt add new uts", err)

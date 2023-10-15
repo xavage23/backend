@@ -447,7 +447,7 @@ class News(Table, tablename="news"):
 class Stocks(Table, tablename="stocks"):
     @classmethod
     def get_readable(cls):
-        return Readable(template="%s - %s (%s) %s", columns=[cls.id, cls.ticker, cls.company_name, cls.game_id])
+        return Readable(template="%s - %s (%s) for game %s", columns=[cls.id, cls.ticker, cls.company_name, cls.game_id.code])
 
     id = UUID(
         default=UUID4(),
@@ -637,7 +637,7 @@ class GameUsers(Table, tablename="game_users"):
 class UserTransactions(Table, tablename="user_transactions"):
     @classmethod
     def get_readable(cls):
-        return Readable(template="%s [%s %s] by %s", columns=[cls.id, cls.action, cls.stock_id, cls.user_id])
+        return Readable(template="%s [%s %s] by %s", columns=[cls.id, cls.action, cls.stock_id.ticker, cls.user_id.username])
 
     class UserTransactionAction(str, Enum):
         buy = "buy"
@@ -678,6 +678,20 @@ class UserTransactions(Table, tablename="user_transactions"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+    )
+    origin_game_id = ForeignKey(
+        references=Games,
+        on_delete=OnDelete.restrict,
+        on_update=OnUpdate.cascade,
+        target_column="id",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        help_text="This is the game that the transaction was created in. This is used to determine if the transaction is a past transaction or not"
     )
     stock_id = ForeignKey(
         references=Stocks,
@@ -734,6 +748,16 @@ class UserTransactions(Table, tablename="user_transactions"):
         db_column_name=None,
         secret=False,
         choices=UserTransactionAction
+    )
+    past = Boolean(
+        default=False,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
     )
     created_at = Timestamptz(
         default=TimestamptzNow(),
