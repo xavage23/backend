@@ -36,7 +36,7 @@ func Docs() *docs.Doc {
 			{
 				Name:        "stockId",
 				In:          "path",
-				Description: "The stock ID.",
+				Description: "The stock ID or ticker",
 				Required:    true,
 				Schema:      docs.IdSchema,
 			},
@@ -74,7 +74,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
-	rows, err := state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE id = $1 AND (game_id = $2 OR ticker = $2) ORDER BY created_at DESC", stockId, gameId)
+	var rows pgx.Rows
+	var err error
+
+	if transact.IsValidUUID(stockId) {
+		rows, err = state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE id = $1 AND game_id = $2 ORDER BY created_at DESC", stockId, gameId)
+	} else {
+		rows, err = state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE ticker = $1 AND game_id = $2 ORDER BY created_at DESC", stockId, gameId)
+	}
 
 	if err != nil {
 		state.Logger.Error(err)

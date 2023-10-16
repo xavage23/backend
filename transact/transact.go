@@ -10,6 +10,7 @@ import (
 	"xavagebb/state"
 	"xavagebb/types"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -246,4 +247,9 @@ func GetTotalStockQuantity(uts []types.UserTransaction, stockId string) int64 {
 	}
 
 	return totalQuantity
+}
+
+func IsValidUUID(u string) bool {
+	_, err := uuid.Parse(u)
+	return err == nil
 }
