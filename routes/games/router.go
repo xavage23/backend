@@ -5,6 +5,7 @@ import (
 	"xavagebb/routes/games/endpoints/get_available_games"
 	"xavagebb/routes/games/endpoints/get_current_game_user"
 	"xavagebb/routes/games/endpoints/get_game"
+	"xavagebb/routes/games/endpoints/get_game_leaderboard"
 	"xavagebb/routes/games/endpoints/join_game"
 
 	"github.com/go-chi/chi/v5"
@@ -31,6 +32,20 @@ func (b Router) Routes(r *chi.Mux) {
 				URLVar:       "userId",
 				Type:         api.TargetTypeUser,
 				AllowedScope: "notingame", // This endpoint is cross-game
+			},
+		},
+	}.Route(r)
+
+	uapi.Route{
+		Pattern: "/users/{userId}/games/{gameId}/leaderboard",
+		OpId:    "get_game_leaderboard",
+		Method:  uapi.GET,
+		Docs:    get_game_leaderboard.Docs,
+		Handler: get_game_leaderboard.Route,
+		Auth: []uapi.AuthType{
+			{
+				URLVar: "userId",
+				Type:   api.TargetTypeUser,
 			},
 		},
 	}.Route(r)
