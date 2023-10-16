@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"xavagebb/mapofmu"
 	"xavagebb/state"
 	"xavagebb/transact"
 	"xavagebb/types"
@@ -13,6 +14,8 @@ import (
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
 )
+
+var mut = mapofmu.New[string]()
 
 func Docs() *docs.Doc {
 	return &docs.Doc{
@@ -83,6 +86,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			},
 		}
 	}
+
+	l := mut.Lock(userId)
+	defer l.Unlock()
 
 	var req types.CreateTransaction
 
