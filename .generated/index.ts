@@ -80,6 +80,11 @@ export interface GameUser {
   current_balance: number /* int64 */;
   created_at: string /* RFC3339 */;
 }
+export interface Leaderboard {
+  user?: User;
+  initial_balance: number /* int64 */;
+  current_balance: number /* int64 */;
+}
 
 //////////
 // source: stock.go
@@ -113,6 +118,7 @@ export interface News {
   id: string;
   title: string;
   description: string;
+  published: boolean;
   affected_stock_id: string /* uuid */;
   affected_stock?: Stock;
   game_id: string;
