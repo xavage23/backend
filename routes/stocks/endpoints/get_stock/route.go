@@ -74,7 +74,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
-	rows, err := state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE id = $1 AND game_id = $2 ORDER BY created_at DESC", stockId, gameId)
+	rows, err := state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE id = $1 AND (game_id = $2 OR ticker = $2) ORDER BY created_at DESC", stockId, gameId)
 
 	if err != nil {
 		state.Logger.Error(err)
@@ -85,13 +85,25 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{
-			Json: []types.Stock{},
+			Status: http.StatusNotFound,
+			Json: types.ApiError{
+				Message: "Stock not found",
+			},
 		}
 	}
 
 	if err != nil {
 		state.Logger.Error(err)
 		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	if stock.GameID != gameId {
+		return uapi.HttpResponse{
+			Status: http.StatusBadRequest,
+			Json: types.ApiError{
+				Message: "This stock is not available in this game",
+			},
+		}
 	}
 
 	included := []string{"prior_prices"}
