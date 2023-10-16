@@ -158,18 +158,22 @@ func GetPriorStockPrices(ctx context.Context, gameId, ticker string) ([]types.Pr
 	if cachedData != nil {
 		val, err := cachedData.Result()
 
-		if err == nil && val != "" {
-			var allPrices []types.PriorPricePoint
+		if err == nil {
+			if val != "" {
+				var allPrices []types.PriorPricePoint
 
-			err = json.Unmarshal([]byte(val), &allPrices)
+				err = json.Unmarshal([]byte(val), &allPrices)
 
-			if err != nil {
-				return nil, err
+				if err != nil {
+					return nil, err
+				}
+
+				return allPrices, nil
+			} else {
+				state.Logger.Error("Failed to get prior stock prices from cache ", errors.New("empty cache"))
 			}
-
-			return allPrices, nil
 		} else {
-			state.Logger.Error("Failed to get prior stock prices from cache", err)
+			state.Logger.Error("Failed to get prior stock prices from cache ", err)
 		}
 	}
 

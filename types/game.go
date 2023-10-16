@@ -15,6 +15,12 @@ type Game struct {
 	InitialBalance     int64     `db:"initial_balance" json:"initial_balance" description:"The initial balance of the game"`
 	GameNumber         int       `db:"game_number" json:"game_number" description:"The number of the game. Higher numbered games will have transactions from lower game numbers migrated to themselves"`
 	OldStocksCarryOver bool      `db:"old_stocks_carry_over" json:"old_stocks_carry_over" description:"Whether stocks from previous games carry over to this game"`
+	PubliclyListed     bool      `db:"publicly_listed" json:"publicly_listed" description:"Whether the game is publicly listed"`
+}
+
+type AvailableGame struct {
+	Game    Game `json:"game" description:"The game object"`
+	CanJoin bool `json:"can_join" description:"Whether the user is allowed to join the game"`
 }
 
 type GameJoinRequest struct {

@@ -26,6 +26,13 @@ func Docs() *docs.Doc {
 		Description: "Returns a game object given a game id",
 		Params: []docs.Parameter{
 			{
+				Name:        "userId",
+				In:          "path",
+				Description: "The ID of the user. Only used for authentication and ratelimiting purposes",
+				Required:    true,
+				Schema:      docs.IdSchema,
+			},
+			{
 				Name:        "gameId",
 				In:          "path",
 				Description: "The ID or code of the game",

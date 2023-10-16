@@ -197,7 +197,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	for _, oldGameId := range gameIds {
-		rows, err := tx.Query(d.Context, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price, past) SELECT $1, $2, origin_game_id, stock_id, price_index, amount, action, sale_price, $3 FROM user_transactions WHERE game_id = $4 AND user_id = $5 RETURNING id, stock_id", d.Auth.ID, gameId, true, oldGameId, d.Auth.ID)
+		rows, err := tx.Query(d.Context, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) SELECT $1, $2, origin_game_id, stock_id, price_index, amount, action, sale_price FROM user_transactions WHERE game_id = $3 AND user_id = $4 RETURNING id, stock_id", d.Auth.ID, gameId, oldGameId, d.Auth.ID)
 
 		if err != nil {
 			state.Logger.Error("couldnt add new uts", err)

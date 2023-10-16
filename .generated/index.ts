@@ -58,6 +58,11 @@ export interface Game {
   initial_balance: number /* int64 */;
   game_number: number /* int */;
   old_stocks_carry_over: boolean;
+  publicly_listed: boolean;
+}
+export interface AvailableGame {
+  game: Game;
+  can_join: boolean;
 }
 export interface GameJoinRequest {
   game_code: string;
@@ -134,7 +139,6 @@ export interface UserTransaction {
   sale_price: number /* int64 */;
   amount: number /* int64 */;
   action: string;
-  past: boolean;
   created_at: string /* RFC3339 */;
 }
 

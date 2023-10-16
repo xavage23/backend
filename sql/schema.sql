@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS games (
     enabled BOOLEAN NOT NULL DEFAULT FALSE,
     trading_allowed BOOLEAN NOT NULL DEFAULT FALSE,
     old_stocks_carry_over BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not stocks from previous games must carry over
+    publicly_listed BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not the game is publicly listed
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     current_price_index INTEGER NOT NULL DEFAULT 0, -- The current price index of the game
     initial_balance BIGINT NOT NULL -- The initial balance of a user in the game in cents
@@ -70,6 +71,5 @@ CREATE TABLE IF NOT EXISTS user_transactions (
     sale_price BIGINT NOT NULL, -- The price of the stock at the time of the transaction in cents
     amount BIGINT NOT NULL, -- The amount of stocks bought/sold
     action TEXT NOT NULL, -- BUY or SELL
-    past BOOLEAN NOT NULL DEFAULT FALSE, -- Whether or not the transaction is in the past (from a previous game)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

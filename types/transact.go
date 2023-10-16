@@ -20,6 +20,5 @@ type UserTransaction struct {
 	SalePrice    int64     `db:"sale_price" json:"sale_price" description:"The price of the stock at the time of the transaction"`
 	Amount       int64     `db:"amount" json:"amount" description:"The amount of the stock traded"`
 	Action       string    `db:"action" json:"action" description:"The type of the transaction (buy or sell)"`
-	Past         bool      `db:"past" json:"past" description:"Whether the transaction is in the past (previous game)"`
 	CreatedAt    time.Time `db:"created_at" json:"created_at" description:"The time the transaction was created"`
 }

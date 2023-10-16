@@ -75,7 +75,7 @@ class Games(Table, tablename="games"):
         secret=False,
     )
     trading_allowed = Boolean(
-        default=False,
+        default=True,
         null=False,
         primary_key=False,
         unique=False,
@@ -85,7 +85,7 @@ class Games(Table, tablename="games"):
         secret=False,
     )
     old_stocks_carry_over = Boolean(        
-        default=False,
+        default=True,
         null=False,
         primary_key=False,
         unique=False,
@@ -94,6 +94,17 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
         help_text="Whether or not all old stocks from prior games must also be present in this game"
+    )
+    publicly_listed = Boolean(        
+        default=True,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        help_text="If this is true, then the Get Available Games endpoint will return this game and the game will be visible on the selection screen"
     )
     created_at = Timestamptz(
         default=TimestamptzNow(),
@@ -773,16 +784,6 @@ class UserTransactions(Table, tablename="user_transactions"):
         db_column_name=None,
         secret=False,
         choices=UserTransactionAction
-    )
-    past = Boolean(
-        default=False,
-        null=False,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
     )
     created_at = Timestamptz(
         default=TimestamptzNow(),

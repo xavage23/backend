@@ -2,6 +2,7 @@ package games
 
 import (
 	"xavagebb/api"
+	"xavagebb/routes/games/endpoints/get_available_games"
 	"xavagebb/routes/games/endpoints/get_current_game_user"
 	"xavagebb/routes/games/endpoints/get_game"
 	"xavagebb/routes/games/endpoints/join_game"
@@ -20,11 +21,33 @@ func (b Router) Tag() (string, string) {
 
 func (b Router) Routes(r *chi.Mux) {
 	uapi.Route{
-		Pattern: "/games/{gameId}",
+		Pattern: "/users/{userId}/games/{gameId}",
 		OpId:    "get_game",
 		Method:  uapi.GET,
 		Docs:    get_game.Docs,
 		Handler: get_game.Route,
+		Auth: []uapi.AuthType{
+			{
+				URLVar:       "userId",
+				Type:         api.TargetTypeUser,
+				AllowedScope: "notingame", // This endpoint is cross-game
+			},
+		},
+	}.Route(r)
+
+	uapi.Route{
+		Pattern: "/users/{userId}/available_games",
+		OpId:    "get_available_games",
+		Method:  uapi.GET,
+		Docs:    get_available_games.Docs,
+		Handler: get_available_games.Route,
+		Auth: []uapi.AuthType{
+			{
+				URLVar:       "userId",
+				Type:         api.TargetTypeUser,
+				AllowedScope: "notingame",
+			},
+		},
 	}.Route(r)
 
 	uapi.Route{

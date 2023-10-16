@@ -78,80 +78,80 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 
 			data := map[string]any{}
 
-			if req.Header.Get("X-GameUser-ID") != "" {
-				var gameId string
+			if auth.AllowedScope != "notingame" {
+				if req.Header.Get("X-GameUser-ID") != "" {
+					var gameId string
 
-				err = state.Pool.QueryRow(state.Context, "SELECT game_id FROM game_users WHERE user_id = $1 AND id = $2", id, req.Header.Get("X-GameUser-ID")).Scan(&gameId)
+					err = state.Pool.QueryRow(state.Context, "SELECT game_id FROM game_users WHERE user_id = $1 AND id = $2", id, req.Header.Get("X-GameUser-ID")).Scan(&gameId)
 
-				if errors.Is(err, pgx.ErrNoRows) {
-					return uapi.AuthData{}, uapi.HttpResponse{
-						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "This game user ID does not exist [no count rows]!"},
-					}, false
-				}
+					if errors.Is(err, pgx.ErrNoRows) {
+						return uapi.AuthData{}, uapi.HttpResponse{
+							Status: http.StatusForbidden,
+							Json:   types.ApiError{Message: "This game user ID does not exist [no count rows]!"},
+						}, false
+					}
 
-				if err != nil {
-					return uapi.AuthData{}, uapi.HttpResponse{
-						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
-					}, false
-				}
+					if err != nil {
+						return uapi.AuthData{}, uapi.HttpResponse{
+							Status: http.StatusForbidden,
+							Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
+						}, false
+					}
 
-				// Check game_allowed_users to ensure user is still allowed to use the API
-				var gacCount int64
+					// Check game_allowed_users to ensure user is still allowed to use the API
+					var gacCount int64
 
-				err = state.Pool.QueryRow(state.Context, "SELECT COUNT(*) FROM game_allowed_users WHERE user_id = $1 AND game_id = $2", id, gameId).Scan(&gacCount)
+					err = state.Pool.QueryRow(state.Context, "SELECT COUNT(*) FROM game_allowed_users WHERE user_id = $1 AND game_id = $2", id, gameId).Scan(&gacCount)
 
-				if errors.Is(err, pgx.ErrNoRows) {
-					return uapi.AuthData{}, uapi.HttpResponse{
-						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "This user does not have permission to play this game [count]!"},
-					}, false
-				}
+					if errors.Is(err, pgx.ErrNoRows) {
+						return uapi.AuthData{}, uapi.HttpResponse{
+							Status: http.StatusForbidden,
+							Json:   types.ApiError{Message: "This user does not have permission to play this game [count]!"},
+						}, false
+					}
 
-				if err != nil {
-					return uapi.AuthData{}, uapi.HttpResponse{
-						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
-					}, false
-				}
+					if err != nil {
+						return uapi.AuthData{}, uapi.HttpResponse{
+							Status: http.StatusForbidden,
+							Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
+						}, false
+					}
 
-				if gacCount == 0 {
-					return uapi.AuthData{}, uapi.HttpResponse{
-						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "This user does not have permission to play this game!"},
-					}, false
-				}
+					if gacCount == 0 {
+						return uapi.AuthData{}, uapi.HttpResponse{
+							Status: http.StatusForbidden,
+							Json:   types.ApiError{Message: "This user does not have permission to play this game!"},
+						}, false
+					}
 
-				var enabled bool
-				err = state.Pool.QueryRow(state.Context, "SELECT enabled FROM games WHERE id = $1", gameId).Scan(&enabled)
+					var enabled bool
+					err = state.Pool.QueryRow(state.Context, "SELECT enabled FROM games WHERE id = $1", gameId).Scan(&enabled)
 
-				if errors.Is(err, pgx.ErrNoRows) {
-					return uapi.AuthData{}, uapi.HttpResponse{
-						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "This game does not exist!"},
-					}, false
-				}
+					if errors.Is(err, pgx.ErrNoRows) {
+						return uapi.AuthData{}, uapi.HttpResponse{
+							Status: http.StatusForbidden,
+							Json:   types.ApiError{Message: "This game does not exist!"},
+						}, false
+					}
 
-				if err != nil {
-					return uapi.AuthData{}, uapi.HttpResponse{
-						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
-					}, false
-				}
+					if err != nil {
+						return uapi.AuthData{}, uapi.HttpResponse{
+							Status: http.StatusForbidden,
+							Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
+						}, false
+					}
 
-				if !enabled {
-					return uapi.AuthData{}, uapi.HttpResponse{
-						Status: http.StatusForbidden,
-						Json:   types.ApiError{Message: "This game is (no longer) enabled!"},
-					}, false
-				}
+					if !enabled {
+						return uapi.AuthData{}, uapi.HttpResponse{
+							Status: http.StatusForbidden,
+							Json:   types.ApiError{Message: "This game is (no longer) enabled!"},
+						}, false
+					}
 
-				data = map[string]any{
-					"gameId": gameId,
-				}
-			} else {
-				if auth.AllowedScope != "notingame" {
+					data = map[string]any{
+						"gameId": gameId,
+					}
+				} else {
 					return uapi.AuthData{}, uapi.HttpResponse{
 						Status: http.StatusForbidden,
 						Json:   types.ApiError{Message: "You must specify a game user ID to use this endpoint!"},
