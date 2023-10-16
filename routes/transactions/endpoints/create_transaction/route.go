@@ -214,7 +214,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			return uapi.HttpResponse{
 				Status: http.StatusBadRequest,
 				Json: types.ApiError{
-					Message: fmt.Sprintln("You are trying to sell", req.Amount, "stocks but you only have", totalAvailableQuantity, "available"),
+					Message: fmt.Sprint("You are trying to sell ", req.Amount, " stocks but you only have ", totalAvailableQuantity, " available"),
 				},
 			}
 		}
