@@ -550,6 +550,16 @@ class News(Table, tablename="news"):
         db_column_name=None,
         secret=False,
     )
+    published = Boolean(
+        default=False,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
     created_at = Timestamptz(
         default=TimestamptzNow(),
         null=False,

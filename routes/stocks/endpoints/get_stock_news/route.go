@@ -71,7 +71,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	withStocks := r.URL.Query().Get("with_stocks")
 
-	rows, err := state.Pool.Query(d.Context, "SELECT "+newsCols+" FROM news WHERE game_id = $1 ORDER BY created_at DESC", gameId)
+	rows, err := state.Pool.Query(d.Context, "SELECT "+newsCols+" FROM news WHERE game_id = $1 AND published = true ORDER BY created_at DESC", gameId)
 
 	if err != nil {
 		state.Logger.Error(err)

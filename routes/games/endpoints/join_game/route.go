@@ -1,7 +1,9 @@
 package join_game
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 	"xavagebb/state"
@@ -158,100 +160,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	defer tx.Rollback(d.Context)
 
-	// Copy transactions to new game
-	var gameNumber int
-	err = tx.QueryRow(d.Context, "SELECT game_number FROM games WHERE id = $1", gameId).Scan(&gameNumber)
+	// Migrate user transactions
+	err = migrateUserTransactions(d.Context, tx, d.Auth.ID, gameId, oldStocksCarryOver)
 
 	if err != nil {
-		state.Logger.Error("could not fetch game_number", err)
-		return uapi.DefaultResponse(http.StatusInternalServerError)
-	}
-
-	oldGames, err := tx.Query(d.Context, "SELECT id FROM games WHERE game_number < $1", gameNumber)
-
-	if err != nil {
-		state.Logger.Error("could not fetch old games", err)
-		return uapi.DefaultResponse(http.StatusInternalServerError)
-	}
-
-	var gameIds []string
-
-	for oldGames.Next() {
-		// Fetch all transactions from the old game FOR THE user ID and copy them
-		var oldGameId string
-		err = oldGames.Scan(&oldGameId)
-
-		if err != nil {
-			state.Logger.Error("couldnt scan game id", err)
-			return uapi.DefaultResponse(http.StatusInternalServerError)
-		}
-
-		gameIds = append(gameIds, oldGameId)
-	}
-
-	oldGames.Close()
-
-	type utid struct {
-		ID      string
-		StockId string
-	}
-
-	for _, oldGameId := range gameIds {
-		rows, err := tx.Query(d.Context, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) SELECT $1, $2, origin_game_id, stock_id, price_index, amount, action, sale_price FROM user_transactions WHERE game_id = $3 AND user_id = $4 RETURNING id, stock_id", d.Auth.ID, gameId, oldGameId, d.Auth.ID)
-
-		if err != nil {
-			state.Logger.Error("couldnt add new uts", err)
-			return uapi.DefaultResponse(http.StatusInternalServerError)
-		}
-
-		var utids []utid
-		for rows.Next() {
-			var id string
-			var stockId string
-			err = rows.Scan(&id, &stockId)
-
-			if err != nil {
-				state.Logger.Error("utid update error", err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			utids = append(utids, utid{
-				ID:      id,
-				StockId: stockId,
-			})
-		}
-
-		rows.Close()
-
-		for _, utid := range utids {
-			// Get the corresponding stock ID with the same ticker as the stock ID in the old game
-			var stockId string
-
-			err = tx.QueryRow(d.Context, "SELECT id FROM stocks WHERE game_id = $1 AND ticker = (SELECT ticker FROM stocks WHERE id = $2)", gameId, utid.StockId).Scan(&stockId)
-
-			if errors.Is(err, pgx.ErrNoRows) {
-				if oldStocksCarryOver {
-					return uapi.HttpResponse{
-						Status: http.StatusInternalServerError,
-						Json:   types.ApiError{Message: "This game has old stocks carry over enabled but the transaction on stock with id " + utid.StockId + " does not have an equivalent ticker in the new game!"},
-					}
-				}
-
-				continue
-			}
-
-			if err != nil {
-				state.Logger.Error("utid id select", err, utid)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			// Update the stock ID in the new game
-			_, err = tx.Exec(d.Context, "UPDATE user_transactions SET stock_id = $1 WHERE id = $2", stockId, utid.ID)
-
-			if err != nil {
-				state.Logger.Error("transact update", err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
+		state.Logger.Error("migrate error:", err)
+		return uapi.HttpResponse{
+			Status: http.StatusInternalServerError,
+			Json:   types.ApiError{Message: "Failed to migrate user transactions: " + err.Error()},
 		}
 	}
 
@@ -276,4 +192,95 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			New: true,
 		},
 	}
+}
+
+func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, gameId string, oldStocksCarryOver bool) error {
+	// Copy transactions to new game
+	var gameNumber int
+	err := tx.QueryRow(ctx, "SELECT game_number FROM games WHERE id = $1", gameId).Scan(&gameNumber)
+
+	if err != nil {
+		return fmt.Errorf("could not fetch game_number %s", err)
+	}
+
+	oldGames, err := tx.Query(ctx, "SELECT id FROM games WHERE game_number < $1", gameNumber)
+
+	if err != nil {
+		return fmt.Errorf("could not fetch old games %s", err)
+	}
+
+	var gameIds []string
+
+	for oldGames.Next() {
+		// Fetch all transactions from the old game FOR THE user ID and copy them
+		var oldGameId string
+		err = oldGames.Scan(&oldGameId)
+
+		if err != nil {
+			return fmt.Errorf("couldnt scan game id %s", err)
+		}
+
+		gameIds = append(gameIds, oldGameId)
+	}
+
+	oldGames.Close()
+
+	type utid struct {
+		ID      string
+		StockId string
+	}
+
+	for _, oldGameId := range gameIds {
+		rows, err := tx.Query(ctx, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) SELECT $1, $2, origin_game_id, stock_id, price_index, amount, action, sale_price FROM user_transactions WHERE game_id = $3 AND user_id = $4 RETURNING id, stock_id", userId, gameId, oldGameId, userId)
+
+		if err != nil {
+			return fmt.Errorf("couldnt add new uts %s", err)
+		}
+
+		var utids []utid
+		for rows.Next() {
+			var id string
+			var stockId string
+			err = rows.Scan(&id, &stockId)
+
+			if err != nil {
+				return fmt.Errorf("utid update error %s", err)
+			}
+
+			utids = append(utids, utid{
+				ID:      id,
+				StockId: stockId,
+			})
+		}
+
+		rows.Close()
+
+		for _, utid := range utids {
+			// Get the corresponding stock ID with the same ticker as the stock ID in the old game
+			var stockId string
+
+			err = tx.QueryRow(ctx, "SELECT id FROM stocks WHERE game_id = $1 AND ticker = (SELECT ticker FROM stocks WHERE id = $2)", gameId, utid.StockId).Scan(&stockId)
+
+			if errors.Is(err, pgx.ErrNoRows) {
+				if oldStocksCarryOver {
+					return fmt.Errorf("this game has old stocks carry over enabled but the transaction on stock with id %s does not have an equivalent ticker in the new game", utid.StockId)
+				}
+
+				continue
+			}
+
+			if err != nil {
+				return fmt.Errorf("utid id select %s %s", err, utid)
+			}
+
+			// Update the stock ID in the new game
+			_, err = tx.Exec(ctx, "UPDATE user_transactions SET stock_id = $1 WHERE id = $2", stockId, utid.ID)
+
+			if err != nil {
+				return fmt.Errorf("utid transact update error %s", err)
+			}
+		}
+	}
+
+	return nil
 }
