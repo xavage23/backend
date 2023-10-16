@@ -182,7 +182,7 @@ app = FastAPI(
 Clears a key from the Redis cache. E.g.
 
 prior_stock_prices:{game_id}:{ticker} to clear the prior stock prices cache for a game and ticker.
-stock_list:{game_id}:?wpp={true/false} to clear the stock list cache for a game and whether to include prior prices for stocks.
+(potential, not implemented yet) stock_list:{game_id}:?wpp={true/false} to clear the stock list cache for a game and whether to include prior prices for stocks.
 """
                     ),
                     FormConfig(

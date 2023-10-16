@@ -25,6 +25,8 @@ var (
 
 	gameColsArr = db.GetCols(types.Game{})
 	gameCols    = strings.Join(gameColsArr, ", ")
+
+	ppCacheTime = 3 * time.Minute
 )
 
 func ConvertUUIDToString(uuid [16]byte) string {
@@ -195,6 +197,11 @@ func GetPriorStockPrices(ctx context.Context, gameId, ticker string) ([]types.Pr
 	games, err := pgx.CollectRows(gameRows, pgx.RowToStructByName[types.Game])
 
 	if errors.Is(err, pgx.ErrNoRows) {
+		err = state.Redis.Set(ctx, "prior_stock_prices:"+gameId+":"+ticker, "[]", ppCacheTime).Err()
+
+		if err != nil {
+			return nil, err
+		}
 		return []types.PriorPricePoint{}, nil
 	}
 
@@ -209,7 +216,11 @@ func GetPriorStockPrices(ctx context.Context, gameId, ticker string) ([]types.Pr
 
 		err = state.Pool.QueryRow(ctx, "SELECT prices FROM stocks WHERE game_id = $1 AND ticker = $2", game.ID, ticker).Scan(&prices)
 
-		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
+			continue
+		}
+
+		if err != nil {
 			return nil, err
 		}
 
@@ -226,7 +237,7 @@ func GetPriorStockPrices(ctx context.Context, gameId, ticker string) ([]types.Pr
 		return nil, err
 	}
 
-	err = state.Redis.Set(ctx, "prior_stock_prices:"+gameId+":"+ticker, cacheStr, 1*time.Minute).Err()
+	err = state.Redis.Set(ctx, "prior_stock_prices:"+gameId+":"+ticker, cacheStr, ppCacheTime).Err()
 
 	if err != nil {
 		return nil, err
