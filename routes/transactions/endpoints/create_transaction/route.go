@@ -150,6 +150,15 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		}
 	}
 
+	if stock.GameID != gameId {
+		return uapi.HttpResponse{
+			Status: http.StatusNotFound,
+			Json: types.ApiError{
+				Message: "Stock not available in this game",
+			},
+		}
+	}
+
 	// Get initial balance of the user
 	var initialBalance int64
 
