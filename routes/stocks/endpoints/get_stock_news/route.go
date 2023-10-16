@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-	"time"
 
 	"xavagebb/db"
 	"xavagebb/state"
@@ -72,15 +71,6 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	withStocks := r.URL.Query().Get("with_stocks")
 
-	if state.Redis.Exists(d.Context, "news_list:"+gameId+"?ws="+withStocks).Val() > 0 {
-		return uapi.HttpResponse{
-			Data: state.Redis.Get(d.Context, "news_list:"+gameId).Val(),
-			Headers: map[string]string{
-				"X-Cache": "true",
-			},
-		}
-	}
-
 	rows, err := state.Pool.Query(d.Context, "SELECT "+newsCols+" FROM news WHERE game_id = $1 ORDER BY created_at DESC", gameId)
 
 	if err != nil {
@@ -144,8 +134,6 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	return uapi.HttpResponse{
-		Json:      news,
-		CacheKey:  "news_list:" + gameId + "?ws=" + withStocks,
-		CacheTime: 30 * time.Second,
+		Json: news,
 	}
 }
