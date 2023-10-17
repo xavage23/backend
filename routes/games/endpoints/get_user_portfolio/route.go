@@ -1,10 +1,7 @@
-package get_game_leaderboard
+package get_user_portfolio
 
 import (
-	"errors"
 	"net/http"
-	"strings"
-	"xavagebb/db"
 	"xavagebb/state"
 	"xavagebb/transact"
 	"xavagebb/types"
@@ -12,18 +9,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
-	"github.com/jackc/pgx/v5"
-)
-
-var (
-	userColsArr = db.GetCols(types.User{})
-	userCols    = strings.Join(userColsArr, ", ")
 )
 
 func Docs() *docs.Doc {
 	return &docs.Doc{
-		Summary:     "Get Game Leaderboard",
-		Description: "Returns the game leaderboard as a map of the user id to the leaderboard user in random order.",
+		Summary:     "Get User Portfolio",
+		Description: "Returns the portfolio of the authenticated user as a map of the stock id to its portfolio in random order.",
 		Params: []docs.Parameter{
 			{
 				Name:        "userId",
@@ -47,7 +38,7 @@ func Docs() *docs.Doc {
 				Schema:      docs.IdSchema,
 			},
 		},
-		Resp: map[string]types.Leaderboard{},
+		Resp: map[string]types.Portfolio{},
 	}
 }
 
@@ -78,64 +69,62 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	uts, err = transact.GetAllTransactions(d.Context, gameId, currentPriceIndex)
+	uts, err = transact.GetUserTransactions(d.Context, userId, gameId, currentPriceIndex)
 
 	if err != nil {
 		state.Logger.Error(err)
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	var leaderboardUsers = map[string]*types.Leaderboard{}
+	var portfolio = map[string]*types.Portfolio{}
 
-	// Fill in user
 	for i := range uts {
-		_, ok := leaderboardUsers[uts[i].UserID]
+		_, ok := portfolio[uts[i].StockID]
 
 		if !ok {
-			row, err := state.Pool.Query(d.Context, "SELECT "+userCols+" FROM users WHERE id = $1", uts[i].UserID)
+			stock, err := transact.GetStock(d.Context, uts[i].StockID, currentPriceIndex)
 
 			if err != nil {
 				state.Logger.Error(err)
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
-			user, err := pgx.CollectOneRow(row, pgx.RowToStructByName[types.User])
-
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue
-			}
+			pp, err := transact.GetPriorStockPrices(d.Context, gameId, uts[i].Stock.Ticker)
 
 			if err != nil {
 				state.Logger.Error(err)
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
-			// Fetch the initial balance of the current game. Other games don't matter here and is a chance of improvement
-			var initialBalance int64
+			stock.PriorPrices = pp
+			stock.Includes = []string{"prior_prices"}
 
-			err = state.Pool.QueryRow(d.Context, "SELECT initial_balance FROM game_users WHERE user_id = $1 AND game_id = $2", uts[i].UserID, gameId).Scan(&initialBalance)
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
+			portfolio[uts[i].StockID] = &types.Portfolio{
+				Stock:   stock,
+				Amounts: map[int]types.PortfolioAmount{},
 			}
+		}
 
-			leaderboardUsers[uts[i].UserID] = &types.Leaderboard{
-				User:           &user,
-				InitialBalance: initialBalance,
-				CurrentBalance: initialBalance,
+		pa, ok := portfolio[uts[i].StockID].Amounts[uts[i].PriceIndex]
+
+		if !ok {
+			pa = types.PortfolioAmount{
+				SalePrice: uts[i].SalePrice,
 			}
+			portfolio[uts[i].StockID].Amounts[uts[i].PriceIndex] = pa
 		}
 
 		switch uts[i].Action {
 		case "buy":
-			leaderboardUsers[uts[i].UserID].CurrentBalance -= uts[i].SalePrice * uts[i].Amount
+			pa.Amount += uts[i].Amount
 		case "sell":
-			leaderboardUsers[uts[i].UserID].CurrentBalance += uts[i].SalePrice * uts[i].Amount
+			pa.Amount -= uts[i].Amount
 		}
+
+		portfolio[uts[i].StockID].Amounts[uts[i].PriceIndex] = pa
 	}
 
 	return uapi.HttpResponse{
-		Json: leaderboardUsers,
+		Json: portfolio,
 	}
 }

@@ -311,6 +311,8 @@ func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, game
 				return fmt.Errorf("couldnt get uts %s", err)
 			}
 
+			state.Logger.Info("Got user transactions for game", oldGameId)
+
 			data := cgmData{
 				GameID:           oldGameId,
 				UserTransactions: uts,
@@ -407,6 +409,8 @@ func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, game
 		if err != nil {
 			return fmt.Errorf("couldnt handle old stock ids %s (%d/%d)", err, len(handledStocks), len(stockIds))
 		}
+	default:
+		return errors.New("invalid game migration method")
 	}
 
 	return nil

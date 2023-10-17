@@ -124,6 +124,14 @@ export interface News {
   game_id: string;
   created_at: string /* RFC3339 */;
 }
+export interface Portfolio {
+  stock?: Stock;
+  amount: { [key: number /* int */]: PortfolioAmount};
+}
+export interface PortfolioAmount {
+  sale_price: number /* int64 */;
+  amount: number /* int64 */;
+}
 
 //////////
 // source: transact.go

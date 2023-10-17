@@ -46,3 +46,13 @@ type News struct {
 	GameID          string      `db:"game_id" json:"game_id" description:"The ID of the game"`
 	CreatedAt       time.Time   `db:"created_at" json:"created_at" description:"The time the news was created"`
 }
+
+type Portfolio struct {
+	Stock   *Stock                  `json:"stock" description:"The stock"`
+	Amounts map[int]PortfolioAmount `json:"amount" description:"The amount of the stock"`
+}
+
+type PortfolioAmount struct {
+	SalePrice int64 `json:"sale_price" description:"The price the stock was sold at"`
+	Amount    int64 `json:"amount" description:"The amount of the stock sold at sale_price"`
+}

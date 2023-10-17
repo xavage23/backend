@@ -97,9 +97,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	// Fill in user
-	if r.URL.Query().Get("include_users") == "true" {
-		var users = make(map[string]*types.User)
-		for i := range uts {
+	var users = make(map[string]*types.User)
+	for i := range uts {
+		if r.URL.Query().Get("include_users") == "true" {
 			cachedUser, ok := users[uts[i].UserID]
 
 			if ok {
@@ -128,9 +128,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			users[uts[i].UserID] = &user
 			uts[i].User = &user
 		}
-	}
 
-	for i := range uts {
 		pp, err := transact.GetPriorStockPrices(d.Context, gameId, uts[i].Stock.Ticker)
 
 		if err != nil {

@@ -26,7 +26,7 @@ class Games(Table, tablename="games"):
 
     class GameMigrationMethod(str, Enum):
         move_entire_transaction_history = "move_entire_transaction_history"
-        condensed_migration = "condensed"
+        condensed_migration = "condensed_migration"
         no_migration = "no_migration"
 
     id = UUID(
