@@ -115,29 +115,28 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 			if ok {
 				uts[i].User = cachedUser
-				continue
+			} else {
+				row, err := state.Pool.Query(d.Context, "SELECT "+userCols+" FROM users WHERE id = $1", uts[i].UserID)
+
+				if err != nil {
+					state.Logger.Error(err)
+					return uapi.DefaultResponse(http.StatusInternalServerError)
+				}
+
+				user, err := pgx.CollectOneRow(row, pgx.RowToStructByName[types.User])
+
+				if errors.Is(err, pgx.ErrNoRows) {
+					continue
+				}
+
+				if err != nil {
+					state.Logger.Error(err)
+					return uapi.DefaultResponse(http.StatusInternalServerError)
+				}
+
+				users[uts[i].UserID] = &user
+				uts[i].User = &user
 			}
-
-			row, err := state.Pool.Query(d.Context, "SELECT "+userCols+" FROM users WHERE id = $1", uts[i].UserID)
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			user, err := pgx.CollectOneRow(row, pgx.RowToStructByName[types.User])
-
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue
-			}
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			users[uts[i].UserID] = &user
-			uts[i].User = &user
 		}
 
 		if r.URL.Query().Get("include_origin_game") == "true" {
@@ -145,29 +144,28 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 			if ok {
 				uts[i].OriginGame = cachedGame
-				continue
+			} else {
+				row, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1", uts[i].OriginGameID)
+
+				if err != nil {
+					state.Logger.Error(err)
+					return uapi.DefaultResponse(http.StatusInternalServerError)
+				}
+
+				game, err := pgx.CollectOneRow(row, pgx.RowToStructByName[types.Game])
+
+				if errors.Is(err, pgx.ErrNoRows) {
+					continue
+				}
+
+				if err != nil {
+					state.Logger.Error(err)
+					return uapi.DefaultResponse(http.StatusInternalServerError)
+				}
+
+				games[uts[i].OriginGameID] = &game
+				uts[i].OriginGame = &game
 			}
-
-			row, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1", uts[i].OriginGameID)
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			game, err := pgx.CollectOneRow(row, pgx.RowToStructByName[types.Game])
-
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue
-			}
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			games[uts[i].OriginGameID] = &game
-			uts[i].OriginGame = &game
 		}
 
 		pp, err := transact.GetPriorStockPrices(d.Context, gameId, uts[i].Stock.Ticker)
