@@ -18,6 +18,9 @@ import (
 var (
 	userColsArr = db.GetCols(types.User{})
 	userCols    = strings.Join(userColsArr, ", ")
+
+	gameColsArr = db.GetCols(types.Game{})
+	gameCols    = strings.Join(gameColsArr, ", ")
 )
 
 func Docs() *docs.Doc {
@@ -42,7 +45,14 @@ func Docs() *docs.Doc {
 			{
 				Name:        "include_users",
 				In:          "query",
-				Description: "Whether to include the user object in each transaction. ",
+				Description: "Whether to include the user object in each transaction.",
+				Required:    false,
+				Schema:      docs.IdSchema,
+			},
+			{
+				Name:        "include_origin_game",
+				In:          "query",
+				Description: "Whether to include the origin game object in each transaction.",
 				Required:    false,
 				Schema:      docs.IdSchema,
 			},
@@ -98,6 +108,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	// Fill in user
 	var users = make(map[string]*types.User)
+	var games = make(map[string]*types.Game)
 	for i := range uts {
 		if r.URL.Query().Get("include_users") == "true" {
 			cachedUser, ok := users[uts[i].UserID]
@@ -127,6 +138,36 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 			users[uts[i].UserID] = &user
 			uts[i].User = &user
+		}
+
+		if r.URL.Query().Get("include_origin_game") == "true" {
+			cachedGame, ok := games[uts[i].OriginGameID]
+
+			if ok {
+				uts[i].OriginGame = cachedGame
+				continue
+			}
+
+			row, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1", uts[i].OriginGameID)
+
+			if err != nil {
+				state.Logger.Error(err)
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+
+			game, err := pgx.CollectOneRow(row, pgx.RowToStructByName[types.Game])
+
+			if errors.Is(err, pgx.ErrNoRows) {
+				continue
+			}
+
+			if err != nil {
+				state.Logger.Error(err)
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+
+			games[uts[i].OriginGameID] = &game
+			uts[i].OriginGame = &game
 		}
 
 		pp, err := transact.GetPriorStockPrices(d.Context, gameId, uts[i].Stock.Ticker)

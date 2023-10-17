@@ -47,6 +47,10 @@ export interface PagedResult<T extends any> {
 //////////
 // source: game.go
 
+export type GameMigrationMethod = string;
+export const GameMigrationMethodMoveEntireTransactionHistory: GameMigrationMethod = "move_entire_transaction_history";
+export const GameMigrationMethodCondensedMigration: GameMigrationMethod = "condensed_migration";
+export const GameMigrationMethodNoMigration: GameMigrationMethod = "no_migration";
 export interface Game {
   id: string;
   code: string;
@@ -58,6 +62,7 @@ export interface Game {
   initial_balance: number /* int64 */;
   game_number: number /* int */;
   old_stocks_carry_over: boolean;
+  game_migration_method: GameMigrationMethod;
   publicly_listed: boolean;
 }
 export interface AvailableGame {
@@ -146,6 +151,7 @@ export interface UserTransaction {
   user_id: string;
   game_id: string;
   origin_game_id: string;
+  origin_game?: Game;
   user?: User;
   stock_id: string;
   stock?: Stock;

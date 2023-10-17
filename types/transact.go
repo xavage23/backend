@@ -13,6 +13,7 @@ type UserTransaction struct {
 	UserID       string    `db:"user_id" json:"user_id" description:"The ID of the user"`
 	GameID       string    `db:"game_id" json:"game_id" description:"The ID of the game"`
 	OriginGameID string    `db:"origin_game_id" json:"origin_game_id" description:"The ID of the game where the transaction originated from"`
+	OriginGame   *Game     `db:"-" json:"origin_game" description:"The game object where the transaction originated from"`
 	User         *User     `db:"-" json:"user" description:"The user object of the transaction"`
 	StockID      string    `db:"stock_id" json:"stock_id" description:"The ID of the stock"`
 	Stock        *Stock    `db:"-" json:"stock" description:"The stock object of the transaction"`
