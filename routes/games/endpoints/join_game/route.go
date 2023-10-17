@@ -19,14 +19,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type GameMigrationMethod string
-
-const (
-	GameMigrationMethodMoveEntireTransactionHistory GameMigrationMethod = "move_entire_transaction_history"
-	GameMigrationMethodCondensedMigration           GameMigrationMethod = "condensed_migration"
-	GameMigrationMethodNoMigration                  GameMigrationMethod = "no_migration"
-)
-
 var (
 	compiledMessages = uapi.CompileValidationErrors(types.GameJoinRequest{})
 )
@@ -92,7 +84,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	var initialBalance int
 	var enabled bool
 	var oldStocksCarryOver bool
-	var gameMigrationMethod GameMigrationMethod
+	var gameMigrationMethod types.GameMigrationMethod
 
 	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance, enabled, old_stocks_carry_over, game_migration_method FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance, &enabled, &oldStocksCarryOver, &gameMigrationMethod)
 
@@ -205,9 +197,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 }
 
-func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, gameId string, oldStocksCarryOver bool, gameMigrationMethod GameMigrationMethod) error {
+func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, gameId string, oldStocksCarryOver bool, gameMigrationMethod types.GameMigrationMethod) error {
 	// Early return
-	if gameMigrationMethod == GameMigrationMethodNoMigration {
+	if gameMigrationMethod == types.GameMigrationMethodNoMigration {
 		return nil
 	}
 
@@ -281,7 +273,7 @@ func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, game
 	}
 
 	switch gameMigrationMethod {
-	case GameMigrationMethodCondensedMigration:
+	case types.GameMigrationMethodCondensedMigration:
 		gameIds, err := getOldGameIds()
 
 		if err != nil {
@@ -372,7 +364,7 @@ func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, game
 		if err != nil {
 			return fmt.Errorf("couldnt handle old stock ids %s (%d/%d)", err, len(handledStocks), len(stockIds))
 		}
-	case GameMigrationMethodMoveEntireTransactionHistory:
+	case types.GameMigrationMethodMoveEntireTransactionHistory:
 		var stockIds []string
 
 		gameIds, err := getOldGameIds()

@@ -4,18 +4,27 @@ import (
 	"time"
 )
 
+type GameMigrationMethod string
+
+const (
+	GameMigrationMethodMoveEntireTransactionHistory GameMigrationMethod = "move_entire_transaction_history"
+	GameMigrationMethodCondensedMigration           GameMigrationMethod = "condensed_migration"
+	GameMigrationMethodNoMigration                  GameMigrationMethod = "no_migration"
+)
+
 type Game struct {
-	ID                 string    `db:"id" json:"id" description:"The ID of the game"`
-	Code               string    `db:"code" json:"code" description:"The code of the game"`
-	Enabled            bool      `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
-	TradingAllowed     bool      `db:"trading_allowed" json:"trading_enabled" description:"Whether trading is enabled"`
-	Name               string    `db:"name" json:"name" description:"The name of the game"`
-	CreatedAt          time.Time `db:"created_at" json:"created_at" description:"The time the game was created"`
-	CurrentPriceIndex  int       `db:"current_price_index" json:"current_price_index" description:"The current price index of the game"`
-	InitialBalance     int64     `db:"initial_balance" json:"initial_balance" description:"The initial balance of the game"`
-	GameNumber         int       `db:"game_number" json:"game_number" description:"The number of the game. Higher numbered games will have transactions from lower game numbers migrated to themselves"`
-	OldStocksCarryOver bool      `db:"old_stocks_carry_over" json:"old_stocks_carry_over" description:"Whether stocks from previous games carry over to this game"`
-	PubliclyListed     bool      `db:"publicly_listed" json:"publicly_listed" description:"Whether the game is publicly listed"`
+	ID                  string              `db:"id" json:"id" description:"The ID of the game"`
+	Code                string              `db:"code" json:"code" description:"The code of the game"`
+	Enabled             bool                `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
+	TradingAllowed      bool                `db:"trading_allowed" json:"trading_enabled" description:"Whether trading is enabled"`
+	Name                string              `db:"name" json:"name" description:"The name of the game"`
+	CreatedAt           time.Time           `db:"created_at" json:"created_at" description:"The time the game was created"`
+	CurrentPriceIndex   int                 `db:"current_price_index" json:"current_price_index" description:"The current price index of the game"`
+	InitialBalance      int64               `db:"initial_balance" json:"initial_balance" description:"The initial balance of the game"`
+	GameNumber          int                 `db:"game_number" json:"game_number" description:"The number of the game. Higher numbered games will have transactions from lower game numbers migrated to themselves"`
+	OldStocksCarryOver  bool                `db:"old_stocks_carry_over" json:"old_stocks_carry_over" description:"Whether stocks from previous games carry over to this game"`
+	GameMigrationMethod GameMigrationMethod `db:"game_migration_method" json:"game_migration_method" description:"The method used to migrate stocks from previous games"`
+	PubliclyListed      bool                `db:"publicly_listed" json:"publicly_listed" description:"Whether the game is publicly listed"`
 }
 
 type AvailableGame struct {

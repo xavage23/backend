@@ -25,8 +25,8 @@ class Games(Table, tablename="games"):
         return Readable(template="%s - %s", columns=[cls.id, cls.code])
 
     class GameMigrationMethod(str, Enum):
-        move_entire_transaction_history = "move_entire_transaction_history"
         condensed_migration = "condensed_migration"
+        move_entire_transaction_history = "move_entire_transaction_history"
         no_migration = "no_migration"
 
     id = UUID(
@@ -101,7 +101,7 @@ class Games(Table, tablename="games"):
         help_text="Whether or not all old stocks from prior games must also be present in this game"
     )
     game_migration_method = Text(
-        default=GameMigrationMethod.move_entire_transaction_history,
+        default=GameMigrationMethod.condensed_migration,
         null=False,
         primary_key=False,
         unique=False,
