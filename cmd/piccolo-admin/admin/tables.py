@@ -24,6 +24,11 @@ class Games(Table, tablename="games"):
     def get_readable(cls):
         return Readable(template="%s - %s", columns=[cls.id, cls.code])
 
+    class GameMigrationMethod(str, Enum):
+        move_entire_transaction_history = "move_entire_transaction_history"
+        condensed_migration = "condensed"
+        no_migration = "no_migration"
+
     id = UUID(
         default=UUID4(),
         null=False,
@@ -94,6 +99,18 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
         help_text="Whether or not all old stocks from prior games must also be present in this game"
+    )
+    game_migration_method = Text(
+        default=GameMigrationMethod.move_entire_transaction_history,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        help_text="How to migrate from one game to this game",
+        choices=GameMigrationMethod
     )
     publicly_listed = Boolean(        
         default=True,

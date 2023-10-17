@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 	"xavagebb/state"
+	"xavagebb/transact"
 
 	"xavagebb/types"
 
@@ -15,6 +16,15 @@ import (
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/infinitybotlist/eureka/uapi/ratelimit"
 	"github.com/jackc/pgx/v5"
+	"golang.org/x/exp/slices"
+)
+
+type GameMigrationMethod string
+
+const (
+	GameMigrationMethodMoveEntireTransactionHistory GameMigrationMethod = "move_entire_transaction_history"
+	GameMigrationMethodCondensedMigration           GameMigrationMethod = "condensed_migration"
+	GameMigrationMethodNoMigration                  GameMigrationMethod = "no_migration"
 )
 
 var (
@@ -82,8 +92,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	var initialBalance int
 	var enabled bool
 	var oldStocksCarryOver bool
+	var gameMigrationMethod GameMigrationMethod
 
-	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance, enabled, old_stocks_carry_over FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance, &enabled, &oldStocksCarryOver)
+	err = state.Pool.QueryRow(d.Context, "SELECT id, initial_balance, enabled, old_stocks_carry_over, game_migration_method FROM games WHERE code = $1", req.GameCode).Scan(&gameId, &initialBalance, &enabled, &oldStocksCarryOver, &gameMigrationMethod)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{
@@ -161,7 +172,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	defer tx.Rollback(d.Context)
 
 	// Migrate user transactions
-	err = migrateUserTransactions(d.Context, tx, d.Auth.ID, gameId, oldStocksCarryOver)
+	err = migrateUserTransactions(d.Context, tx, d.Auth.ID, gameId, oldStocksCarryOver, gameMigrationMethod)
 
 	if err != nil {
 		state.Logger.Error("migrate error:", err)
@@ -194,91 +205,207 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 }
 
-func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, gameId string, oldStocksCarryOver bool) error {
-	// Copy transactions to new game
-	var gameNumber int
-	err := tx.QueryRow(ctx, "SELECT game_number FROM games WHERE id = $1", gameId).Scan(&gameNumber)
-
-	if err != nil {
-		return fmt.Errorf("could not fetch game_number %s", err)
+func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, gameId string, oldStocksCarryOver bool, gameMigrationMethod GameMigrationMethod) error {
+	// Early return
+	if gameMigrationMethod == GameMigrationMethodNoMigration {
+		return nil
 	}
 
-	oldGames, err := tx.Query(ctx, "SELECT id FROM games WHERE game_number < $1", gameNumber)
-
-	if err != nil {
-		return fmt.Errorf("could not fetch old games %s", err)
-	}
-
-	var gameIds []string
-
-	for oldGames.Next() {
-		// Fetch all transactions from the old game FOR THE user ID and copy them
-		var oldGameId string
-		err = oldGames.Scan(&oldGameId)
+	getOldGameIds := func() ([]string, error) {
+		var gameNumber int
+		err := tx.QueryRow(ctx, "SELECT game_number FROM games WHERE id = $1", gameId).Scan(&gameNumber)
 
 		if err != nil {
-			return fmt.Errorf("couldnt scan game id %s", err)
+			return []string{}, fmt.Errorf("could not fetch game_number %s", err)
 		}
 
-		gameIds = append(gameIds, oldGameId)
-	}
-
-	oldGames.Close()
-
-	type utid struct {
-		ID      string
-		StockId string
-	}
-
-	for _, oldGameId := range gameIds {
-		rows, err := tx.Query(ctx, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) SELECT $1, $2, origin_game_id, stock_id, price_index, amount, action, sale_price FROM user_transactions WHERE game_id = $3 AND user_id = $4 RETURNING id, stock_id", userId, gameId, oldGameId, userId)
+		oldGames, err := tx.Query(ctx, "SELECT id FROM games WHERE game_number < $1", gameNumber)
 
 		if err != nil {
-			return fmt.Errorf("couldnt add new uts %s", err)
+			return []string{}, fmt.Errorf("could not fetch old game rows %s", err)
 		}
 
-		var utids []utid
-		for rows.Next() {
-			var id string
-			var stockId string
-			err = rows.Scan(&id, &stockId)
+		var gameIds []string
+
+		for oldGames.Next() {
+			// Fetch all transactions from the old game for the user ID and copy them
+			var oldGameId string
+			err = oldGames.Scan(&oldGameId)
 
 			if err != nil {
-				return fmt.Errorf("utid update error %s", err)
+				return []string{}, fmt.Errorf("couldnt scan game id %s", err)
 			}
 
-			utids = append(utids, utid{
-				ID:      id,
-				StockId: stockId,
-			})
+			gameIds = append(gameIds, oldGameId)
 		}
 
-		rows.Close()
+		oldGames.Close()
 
-		for _, utid := range utids {
+		return gameIds, nil
+	}
+
+	// Handle old stock IDs
+	// This returns a list of stock IDs that were handled and an error (if any)
+	handleOldStockIds := func(stockIds []string) ([]string, error) {
+		var handledStocks []string
+		for _, oldStockId := range stockIds {
 			// Get the corresponding stock ID with the same ticker as the stock ID in the old game
-			var stockId string
+			if !slices.Contains(handledStocks, oldStockId) {
+				var stockId string
+				err := tx.QueryRow(ctx, "SELECT id FROM stocks WHERE game_id = $1 AND ticker = (SELECT ticker FROM stocks WHERE id = $2)", gameId, oldStockId).Scan(&stockId)
 
-			err = tx.QueryRow(ctx, "SELECT id FROM stocks WHERE game_id = $1 AND ticker = (SELECT ticker FROM stocks WHERE id = $2)", gameId, utid.StockId).Scan(&stockId)
+				if errors.Is(err, pgx.ErrNoRows) {
+					if oldStocksCarryOver {
+						return handledStocks, fmt.Errorf("this game has old stocks carry over enabled but the transaction on stock with id %s does not have an equivalent ticker in the new game", oldStockId)
+					}
 
-			if errors.Is(err, pgx.ErrNoRows) {
-				if oldStocksCarryOver {
-					return fmt.Errorf("this game has old stocks carry over enabled but the transaction on stock with id %s does not have an equivalent ticker in the new game", utid.StockId)
+					continue
 				}
 
-				continue
+				if err != nil {
+					return handledStocks, fmt.Errorf("utid id select %s %s", err, oldStockId)
+				}
+
+				// Update the stock ID in the new game
+				_, err = tx.Exec(ctx, "UPDATE user_transactions SET stock_id = $1 WHERE stock_id = $2 AND game_id = $3", stockId, oldStockId, gameId)
+
+				if err != nil {
+					return handledStocks, fmt.Errorf("utid transact update error %s", err)
+				}
+
+				handledStocks = append(handledStocks, oldStockId)
 			}
+		}
+
+		return handledStocks, nil
+	}
+
+	switch gameMigrationMethod {
+	case GameMigrationMethodCondensedMigration:
+		gameIds, err := getOldGameIds()
+
+		if err != nil {
+			return fmt.Errorf("couldnt get old game ids %s", err)
+		}
+
+		type cgmNormalPortfolio struct {
+			Amount int64
+		}
+
+		type cgmData struct {
+			GameID           string
+			UserTransactions []types.UserTransaction
+			// Map of sale price to a map of stock IDs to a map of price indexes to a cgmNormalPortfolios.
+			//
+			// If number is negative, then the user is net selling the stock
+			//
+			// Note: if shorting is added, a new ShortPortfolio may need to be added
+			NormalPortfolio map[int64]map[string]map[int]cgmNormalPortfolio
+		}
+
+		var stockIds []string
+		for _, oldGameId := range gameIds {
+			uts, err := transact.GetUserTransactionsUnparsed(ctx, userId, oldGameId)
 
 			if err != nil {
-				return fmt.Errorf("utid id select %s %s", err, utid)
+				return fmt.Errorf("couldnt get uts %s", err)
 			}
 
-			// Update the stock ID in the new game
-			_, err = tx.Exec(ctx, "UPDATE user_transactions SET stock_id = $1 WHERE id = $2", stockId, utid.ID)
+			data := cgmData{
+				GameID:           oldGameId,
+				UserTransactions: uts,
+				NormalPortfolio:  map[int64]map[string]map[int]cgmNormalPortfolio{},
+			}
+
+			for _, ut := range uts {
+				if _, ok := data.NormalPortfolio[ut.SalePrice]; !ok {
+					data.NormalPortfolio[ut.SalePrice] = map[string]map[int]cgmNormalPortfolio{}
+				}
+
+				if _, ok := data.NormalPortfolio[ut.SalePrice][ut.StockID]; !ok {
+					data.NormalPortfolio[ut.SalePrice][ut.StockID] = map[int]cgmNormalPortfolio{}
+				}
+
+				var portfolio cgmNormalPortfolio
+				if _, ok := data.NormalPortfolio[ut.SalePrice][ut.StockID][ut.PriceIndex]; !ok {
+					portfolio = cgmNormalPortfolio{}
+				} else {
+					portfolio = data.NormalPortfolio[ut.SalePrice][ut.StockID][ut.PriceIndex]
+				}
+
+				switch ut.Action {
+				case "buy":
+					portfolio.Amount += ut.Amount
+				case "sell":
+					portfolio.Amount -= ut.Amount
+				}
+
+				data.NormalPortfolio[ut.SalePrice][ut.StockID][ut.PriceIndex] = portfolio
+			}
+
+			for salePrice, stockMap := range data.NormalPortfolio {
+				for stockId, priceIndexMap := range stockMap {
+					for priceIndex, portfolio := range priceIndexMap {
+						// Create condensed user transactions
+						state.Logger.Infof("Creating condensed transaction for game %s, stock %s, price index %d, sale price %d, amount %d", oldGameId, stockId, priceIndex, salePrice, portfolio.Amount)
+
+						if portfolio.Amount > 0 {
+							_, err = tx.Exec(ctx, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", userId, gameId, oldGameId, stockId, priceIndex, portfolio.Amount, "buy", salePrice)
+						} else {
+							_, err = tx.Exec(ctx, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", userId, gameId, oldGameId, stockId, priceIndex, -portfolio.Amount, "sell", salePrice)
+						}
+
+						if err != nil {
+							return fmt.Errorf("couldnt add new user transaction %s", err)
+						}
+					}
+
+					stockIds = append(stockIds, stockId)
+				}
+			}
+		}
+
+		handledStocks, err := handleOldStockIds(stockIds)
+
+		if err != nil {
+			return fmt.Errorf("couldnt handle old stock ids %s (%d/%d)", err, len(handledStocks), len(stockIds))
+		}
+	case GameMigrationMethodMoveEntireTransactionHistory:
+		var stockIds []string
+
+		gameIds, err := getOldGameIds()
+
+		if err != nil {
+			return fmt.Errorf("couldnt get old game ids %s", err)
+		}
+
+		// Copy transactions to new game
+		for _, oldGameId := range gameIds {
+			rows, err := tx.Query(ctx, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) SELECT $1, $2, origin_game_id, stock_id, price_index, amount, action, sale_price FROM user_transactions WHERE game_id = $3 AND user_id = $4 RETURNING stock_id", userId, gameId, oldGameId, userId)
 
 			if err != nil {
-				return fmt.Errorf("utid transact update error %s", err)
+				return fmt.Errorf("couldnt add new uts %s", err)
 			}
+
+			for rows.Next() {
+				var stockId string
+				err = rows.Scan(&stockId)
+
+				if err != nil {
+					return fmt.Errorf("utid update error %s", err)
+				}
+
+				stockIds = append(stockIds, stockId)
+			}
+
+			rows.Close()
+		}
+
+		// Update stock IDs
+		handledStocks, err := handleOldStockIds(stockIds)
+
+		if err != nil {
+			return fmt.Errorf("couldnt handle old stock ids %s (%d/%d)", err, len(handledStocks), len(stockIds))
 		}
 	}
 

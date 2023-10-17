@@ -45,6 +45,38 @@ func GetCurrentPriceIndex(ctx context.Context, gameId string) (int, error) {
 	return gameCurrentPriceIndex, nil
 }
 
+func GetAllTransactionsUnparsed(ctx context.Context, gameId string) ([]types.UserTransaction, error) {
+	rows, err := state.Pool.Query(ctx, "SELECT "+userTransactionCols+" FROM user_transactions WHERE game_id = $1 ORDER BY created_at DESC", gameId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	transactions, err := pgx.CollectRows(rows, pgx.RowToStructByName[types.UserTransaction])
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
+
+func GetUserTransactionsUnparsed(ctx context.Context, userId string, gameId string) ([]types.UserTransaction, error) {
+	rows, err := state.Pool.Query(ctx, "SELECT "+userTransactionCols+" FROM user_transactions WHERE user_id = $1 AND game_id = $2 ORDER BY created_at DESC", userId, gameId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	transactions, err := pgx.CollectRows(rows, pgx.RowToStructByName[types.UserTransaction])
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
+
 func GetAllTransactions(ctx context.Context, gameId string, currentPriceIndex int) ([]types.UserTransaction, error) {
 	rows, err := state.Pool.Query(ctx, "SELECT "+userTransactionCols+" FROM user_transactions WHERE game_id = $1 ORDER BY created_at DESC", gameId)
 

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS games (
     enabled BOOLEAN NOT NULL DEFAULT FALSE,
     trading_allowed BOOLEAN NOT NULL DEFAULT FALSE,
     old_stocks_carry_over BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not stocks from previous games must carry over
+    game_migration_method TEXT NOT NULL DEFAULT 'move_entire_transaction_history', -- The method of migrating stocks from previous games
     publicly_listed BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not the game is publicly listed
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     current_price_index INTEGER NOT NULL DEFAULT 0, -- The current price index of the game
