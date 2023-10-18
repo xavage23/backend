@@ -22,8 +22,8 @@ type UserTransaction struct {
 }
 
 type TransactionList struct {
-	Transactions []*UserTransaction `json:"transactions" description:"The list of transactions"`
-	Users        map[string]*User   `json:"users" description:"The list of users"`
-	Games        map[string]*Game   `json:"games" description:"The list of games"`
-	Stocks       map[string]*Stock  `json:"stocks" description:"The list of stocks"`
+	Transactions []UserTransaction `json:"transactions" description:"The list of transactions"`
+	Users        map[string]*User  `json:"users" description:"The list of users"`
+	Games        map[string]*Game  `json:"games" description:"The list of games"`
+	Stocks       map[string]*Stock `json:"stocks" description:"The list of stocks"`
 }

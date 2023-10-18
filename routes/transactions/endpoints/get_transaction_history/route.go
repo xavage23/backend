@@ -181,7 +181,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		}
 	}
 
+	trList := types.TransactionList{
+		Transactions: uts,
+		Users:        users,
+		Games:        games,
+		Stocks:       stocks,
+	}
+
 	return uapi.HttpResponse{
-		Json: uts,
+		Json: trList,
 	}
 }
