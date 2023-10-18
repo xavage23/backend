@@ -120,40 +120,28 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	uts, err = transact.GetUserTransactions(d.Context, userId, gameId, currentPriceIndex)
+	uts, err = transact.GetUserTransactions(d.Context, userId, gameId)
 
 	if err != nil {
 		state.Logger.Error(err)
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	// Try to find the stock in the uts to avoid extra db calls
-	var stock *types.Stock
+	// We still haven't found the stock, fetch it manually
+	stock, err := transact.GetStock(d.Context, req.StockID, currentPriceIndex)
 
-	for _, ut := range uts {
-		if ut.StockID == req.StockID {
-			stock = ut.Stock
-			break
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uapi.HttpResponse{
+			Status: http.StatusNotFound,
+			Json: types.ApiError{
+				Message: "Stock not found",
+			},
 		}
 	}
 
-	if stock == nil {
-		// We still haven't found the stock, fetch it manually
-		stock, err = transact.GetStock(d.Context, req.StockID, currentPriceIndex)
-
-		if errors.Is(err, pgx.ErrNoRows) {
-			return uapi.HttpResponse{
-				Status: http.StatusNotFound,
-				Json: types.ApiError{
-					Message: "Stock not found",
-				},
-			}
-		}
-
-		if err != nil {
-			state.Logger.Error(err)
-			return uapi.DefaultResponse(http.StatusInternalServerError)
-		}
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
 	if stock.GameID != gameId {

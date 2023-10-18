@@ -69,7 +69,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	uts, err = transact.GetUserTransactions(d.Context, userId, gameId, currentPriceIndex)
+	uts, err = transact.GetUserTransactions(d.Context, userId, gameId)
 
 	if err != nil {
 		state.Logger.Error(err)
@@ -82,22 +82,12 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		_, ok := portfolio[uts[i].StockID]
 
 		if !ok {
-			stock, err := transact.GetStock(d.Context, uts[i].StockID, currentPriceIndex)
+			stock, err := transact.GetFullyParsedStock(d.Context, uts[i].StockID, currentPriceIndex)
 
 			if err != nil {
 				state.Logger.Error(err)
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
-
-			pp, err := transact.GetPriorStockPrices(d.Context, gameId, uts[i].Stock.Ticker)
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			stock.PriorPrices = pp
-			stock.Includes = []string{"prior_prices"}
 
 			portfolio[uts[i].StockID] = &types.Portfolio{
 				Stock:   stock,

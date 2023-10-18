@@ -71,14 +71,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	var uts []types.UserTransaction
 	var err error
 
-	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
-
-	if err != nil {
-		state.Logger.Error(err)
-		return uapi.DefaultResponse(http.StatusInternalServerError)
-	}
-
-	uts, err = transact.GetAllTransactions(d.Context, gameId, currentPriceIndex)
+	uts, err = transact.GetAllTransactions(d.Context, gameId)
 
 	if err != nil {
 		state.Logger.Error(err)

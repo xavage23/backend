@@ -96,9 +96,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if r.URL.Query().Get("only_me") == "true" {
-		uts, err = transact.GetUserTransactions(d.Context, userId, gameId, currentPriceIndex)
+		uts, err = transact.GetUserTransactions(d.Context, userId, gameId)
 	} else {
-		uts, err = transact.GetAllTransactions(d.Context, gameId, currentPriceIndex)
+		uts, err = transact.GetAllTransactions(d.Context, gameId)
 	}
 
 	if err != nil {
@@ -109,13 +109,12 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	// Fill in user
 	var users = make(map[string]*types.User)
 	var games = make(map[string]*types.Game)
+	var stocks = make(map[string]*types.Stock)
 	for i := range uts {
 		if r.URL.Query().Get("include_users") == "true" {
-			cachedUser, ok := users[uts[i].UserID]
+			_, ok = users[uts[i].UserID]
 
-			if ok {
-				uts[i].User = cachedUser
-			} else {
+			if !ok {
 				row, err := state.Pool.Query(d.Context, "SELECT "+userCols+" FROM users WHERE id = $1", uts[i].UserID)
 
 				if err != nil {
@@ -135,16 +134,13 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				}
 
 				users[uts[i].UserID] = &user
-				uts[i].User = &user
 			}
 		}
 
 		if r.URL.Query().Get("include_origin_game") == "true" {
-			cachedGame, ok := games[uts[i].OriginGameID]
+			_, ok = games[uts[i].OriginGameID]
 
-			if ok {
-				uts[i].OriginGame = cachedGame
-			} else {
+			if !ok {
 				row, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1", uts[i].OriginGameID)
 
 				if err != nil {
@@ -164,19 +160,25 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				}
 
 				games[uts[i].OriginGameID] = &game
-				uts[i].OriginGame = &game
 			}
 		}
 
-		pp, err := transact.GetPriorStockPrices(d.Context, gameId, uts[i].Stock.Ticker)
+		_, ok = stocks[uts[i].StockID]
 
-		if err != nil {
-			state.Logger.Error(err)
-			return uapi.DefaultResponse(http.StatusInternalServerError)
+		if !ok {
+			stock, err := transact.GetFullyParsedStock(d.Context, uts[i].StockID, currentPriceIndex)
+
+			if errors.Is(err, pgx.ErrNoRows) {
+				continue
+			}
+
+			if err != nil {
+				state.Logger.Error(err)
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+
+			stocks[uts[i].StockID] = stock
 		}
-
-		uts[i].Stock.PriorPrices = pp
-		uts[i].Stock.Includes = []string{"prior_prices"}
 	}
 
 	return uapi.HttpResponse{

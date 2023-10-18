@@ -77,7 +77,7 @@ func GetUserTransactionsUnparsed(ctx context.Context, userId string, gameId stri
 	return transactions, nil
 }
 
-func GetAllTransactions(ctx context.Context, gameId string, currentPriceIndex int) ([]types.UserTransaction, error) {
+func GetAllTransactions(ctx context.Context, gameId string) ([]types.UserTransaction, error) {
 	rows, err := state.Pool.Query(ctx, "SELECT "+userTransactionCols+" FROM user_transactions WHERE game_id = $1 ORDER BY created_at DESC", gameId)
 
 	if err != nil {
@@ -90,10 +90,10 @@ func GetAllTransactions(ctx context.Context, gameId string, currentPriceIndex in
 		return nil, err
 	}
 
-	return parseTrList(ctx, gameId, transactions, currentPriceIndex)
+	return transactions, nil
 }
 
-func GetUserTransactions(ctx context.Context, userId string, gameId string, currentPriceIndex int) ([]types.UserTransaction, error) {
+func GetUserTransactions(ctx context.Context, userId string, gameId string) ([]types.UserTransaction, error) {
 	rows, err := state.Pool.Query(ctx, "SELECT "+userTransactionCols+" FROM user_transactions WHERE user_id = $1 AND game_id = $2 ORDER BY created_at DESC", userId, gameId)
 
 	if err != nil {
@@ -106,30 +106,26 @@ func GetUserTransactions(ctx context.Context, userId string, gameId string, curr
 		return nil, err
 	}
 
-	return parseTrList(ctx, gameId, transactions, currentPriceIndex)
+	return transactions, nil
 }
 
-func parseTrList(ctx context.Context, gameId string, transactions []types.UserTransaction, currentPriceIndex int) ([]types.UserTransaction, error) {
-	var cachedStocks = make(map[string]*types.Stock)
-	for i := range transactions {
-		cachedStock, ok := cachedStocks[transactions[i].StockID]
+func GetFullyParsedStock(ctx context.Context, stockId string, currentPriceIndex int) (*types.Stock, error) {
+	stock, err := GetStock(ctx, stockId, currentPriceIndex)
 
-		if ok {
-			transactions[i].Stock = cachedStock
-			continue
-		}
-
-		stock, err := GetStock(ctx, transactions[i].StockID, currentPriceIndex)
-
-		if err != nil {
-			return nil, err
-		}
-
-		cachedStocks[transactions[i].StockID] = stock
-		transactions[i].Stock = stock
+	if err != nil {
+		return nil, err
 	}
 
-	return transactions, nil
+	pp, err := GetPriorStockPrices(ctx, stock.GameID, stock.Ticker)
+
+	if err != nil {
+		return nil, err
+	}
+
+	stock.PriorPrices = pp
+	stock.Includes = []string{"prior_prices"}
+
+	return stock, nil
 }
 
 // Parses a list of user transactions to find the current balance of the user

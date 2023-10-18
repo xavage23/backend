@@ -151,15 +151,18 @@ export interface UserTransaction {
   user_id: string;
   game_id: string;
   origin_game_id: string;
-  origin_game?: Game;
-  user?: User;
   stock_id: string;
-  stock?: Stock;
   price_index: number /* int */;
   sale_price: number /* int64 */;
   amount: number /* int64 */;
   action: string;
   created_at: string /* RFC3339 */;
+}
+export interface TransactionList {
+  transactions: (UserTransaction | undefined)[];
+  users: { [key: string]: User | undefined};
+  games: { [key: string]: Game | undefined};
+  stocks: { [key: string]: Stock | undefined};
 }
 
 //////////
