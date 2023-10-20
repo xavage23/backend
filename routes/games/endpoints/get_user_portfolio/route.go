@@ -98,9 +98,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		pa, ok := portfolio[uts[i].StockID].Amounts[uts[i].SalePrice]
 
 		if !ok {
-			pa = types.PortfolioAmount{
-				SalePrice: uts[i].SalePrice,
-			}
+			pa = types.PortfolioAmount{}
 			portfolio[uts[i].StockID].Amounts[uts[i].SalePrice] = pa
 		}
 

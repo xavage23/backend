@@ -51,10 +51,9 @@ type News struct {
 
 type Portfolio struct {
 	Stock   *Stock                    `json:"stock" description:"The stock"`
-	Amounts map[int64]PortfolioAmount `json:"amount" description:"The amount of the stock"`
+	Amounts map[int64]PortfolioAmount `json:"amount" description:"A map of the sale price to the amount of the stock"`
 }
 
 type PortfolioAmount struct {
-	SalePrice int64 `json:"sale_price" description:"The price the stock was sold at"`
-	Amount    int64 `json:"amount" description:"The amount of the stock sold at sale_price"`
+	Amount int64 `json:"amount" description:"The amount of the stock sold at sale_price"`
 }

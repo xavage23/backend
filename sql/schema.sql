@@ -84,3 +84,5 @@ CREATE TABLE IF NOT EXISTS user_transactions (
     action TEXT NOT NULL, -- BUY or SELL
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+create index ut_core ON user_transactions (id, sale_price, created_at, user_id, game_id, origin_game_id, stock_id, price_index, action);
