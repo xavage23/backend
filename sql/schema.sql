@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS game_users (
     UNIQUE (user_id, game_id)
 );
 
-CREATE TABLE IF NOT EXISTS stock_ratio (
+CREATE TABLE IF NOT EXISTS stock_ratios (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_id UUID NOT NULL REFERENCES stocks (id) ON UPDATE CASCADE ON DELETE CASCADE,
     name TEXT NOT NULL,

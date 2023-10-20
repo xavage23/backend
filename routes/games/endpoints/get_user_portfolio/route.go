@@ -91,17 +91,17 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 			portfolio[uts[i].StockID] = &types.Portfolio{
 				Stock:   stock,
-				Amounts: map[int]types.PortfolioAmount{},
+				Amounts: map[int64]types.PortfolioAmount{},
 			}
 		}
 
-		pa, ok := portfolio[uts[i].StockID].Amounts[uts[i].PriceIndex]
+		pa, ok := portfolio[uts[i].StockID].Amounts[uts[i].SalePrice]
 
 		if !ok {
 			pa = types.PortfolioAmount{
 				SalePrice: uts[i].SalePrice,
 			}
-			portfolio[uts[i].StockID].Amounts[uts[i].PriceIndex] = pa
+			portfolio[uts[i].StockID].Amounts[uts[i].SalePrice] = pa
 		}
 
 		switch uts[i].Action {
@@ -111,7 +111,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			pa.Amount -= uts[i].Amount
 		}
 
-		portfolio[uts[i].StockID].Amounts[uts[i].PriceIndex] = pa
+		portfolio[uts[i].StockID].Amounts[uts[i].SalePrice] = pa
 	}
 
 	return uapi.HttpResponse{

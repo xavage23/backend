@@ -50,8 +50,8 @@ type News struct {
 }
 
 type Portfolio struct {
-	Stock   *Stock                  `json:"stock" description:"The stock"`
-	Amounts map[int]PortfolioAmount `json:"amount" description:"The amount of the stock"`
+	Stock   *Stock                    `json:"stock" description:"The stock"`
+	Amounts map[int64]PortfolioAmount `json:"amount" description:"The amount of the stock"`
 }
 
 type PortfolioAmount struct {

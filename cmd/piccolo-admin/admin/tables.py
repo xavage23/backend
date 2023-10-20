@@ -509,7 +509,7 @@ class Stocks(Table, tablename="stocks"):
         secret=False,
     )
 
-class StockRatio(Table, tablename="stock_ratio"):
+class StockRatios(Table, tablename="stock_ratios"):
     id = UUID(
         default=UUID4(),
         null=False,
