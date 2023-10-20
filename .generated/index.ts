@@ -95,8 +95,10 @@ export interface Leaderboard {
 // source: stock.go
 
 export interface StockRatio {
+  id: string;
   name: string;
-  ratio: number /* float64 */;
+  value_text: string;
+  value: number /* nullable */;
 }
 export interface PriorPricePoint {
   prices: number /* int64 */[];
@@ -112,7 +114,7 @@ export interface Stock {
   known_prices: number /* int64 */[];
   prior_prices: PriorPricePoint[];
   created_at: string /* RFC3339 */;
-  ratios?: (StockRatio | undefined)[];
+  ratios?: StockRatio[];
   includes?: string[];
 }
 export interface StockList {
@@ -159,7 +161,7 @@ export interface UserTransaction {
   created_at: string /* RFC3339 */;
 }
 export interface TransactionList {
-  transactions: (UserTransaction | undefined)[];
+  transactions: UserTransaction[];
   users: { [key: string]: User | undefined};
   games: { [key: string]: Game | undefined};
   stocks: { [key: string]: Stock | undefined};

@@ -9,7 +9,7 @@ import (
 type StockRatio struct {
 	ID        string         `db:"id" json:"id" description:"The ID of the stock ratio"`
 	Name      string         `db:"name" json:"name" description:"The name of the stock ratio"`
-	ValueText string         `db:"value_text" json:"value_text" description:"The value of the stock ratio as text"`
+	ValueText pgtype.Text    `db:"value_text" json:"value_text" description:"The value of the stock ratio as text"`
 	Value     pgtype.Numeric `db:"value" json:"value" description:"The value of the stock ratio"`
 }
 

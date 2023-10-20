@@ -6,4 +6,5 @@ packages:
       time.Time: "string /* RFC3339 */"
       pgtype.Text: "string | null /* nullable */"
       pgtype.UUID: "string /* uuid */"
+      pgtype.Numeric: "number /* nullable */"
       pgtype.Timestamptz: "string | null /* RFC3339, nullable */"

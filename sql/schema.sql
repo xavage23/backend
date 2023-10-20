@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS stock_ratio (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     stock_id UUID NOT NULL REFERENCES stocks (id) ON UPDATE CASCADE ON DELETE CASCADE,
     name TEXT NOT NULL,
-    value_text TEXT NOT NULL,
+    value_text TEXT,
     value NUMERIC NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

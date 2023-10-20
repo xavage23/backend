@@ -543,7 +543,7 @@ class StockRatio(Table, tablename="stock_ratio"):
         secret=False,
     )
     value_text = Text(
-        null=False,
+        null=True,
         primary_key=False,
         unique=False,
         index=False,
