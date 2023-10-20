@@ -97,7 +97,7 @@ export interface Leaderboard {
 export interface StockRatio {
   id: string;
   name: string;
-  value_text: string;
+  value_text: string | null /* nullable */;
   value: number /* nullable */;
 }
 export interface PriorPricePoint {
