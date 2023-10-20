@@ -133,10 +133,9 @@ export interface News {
 }
 export interface Portfolio {
   stock?: Stock;
-  amount: { [key: number /* int */]: PortfolioAmount};
+  amount: { [key: number /* int64 */]: PortfolioAmount};
 }
 export interface PortfolioAmount {
-  sale_price: number /* int64 */;
   amount: number /* int64 */;
 }
 
