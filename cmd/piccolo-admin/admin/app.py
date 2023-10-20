@@ -168,7 +168,7 @@ class ClearUserTransactionsOfUser(BaseModel):
         if not user:
             raise ValueError("User ID does not exist. Please ensure that you are using the user ID [see the Users table] and not the username.")
 
-        game = await UserTable.select(UserTable.id).where(Games.id == data.game_id).first().run()
+        game = await Games.select(Games.id).where(Games.id == data.game_id).first().run()
 
         if not game:
             raise ValueError("Game ID does not exist. Please ensure that you are using the game ID [see the Games table] and not the game code.")
