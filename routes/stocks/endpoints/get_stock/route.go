@@ -19,6 +19,9 @@ import (
 var (
 	stocksColsArr = db.GetCols(types.Stock{})
 	stocksCols    = strings.Join(stocksColsArr, ", ")
+
+	stockRatioColsArr = db.GetCols(types.StockRatio{})
+	stockRatioCols    = strings.Join(stockRatioColsArr, ", ")
 )
 
 func Docs() *docs.Doc {
@@ -133,6 +136,24 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	parsedStock.PriorPrices = pp
 	parsedStock.Includes = included
+
+	ratioRows, err := state.Pool.Query(d.Context, "SELECT "+stockRatioCols+" FROM stock_ratios WHERE stock_id = $1", parsedStock.ID)
+
+	if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	ratios, err := pgx.CollectRows(ratioRows, pgx.RowToStructByName[types.StockRatio])
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		ratios = []types.StockRatio{}
+	} else if err != nil {
+		state.Logger.Error(err)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	parsedStock.Ratios = ratios
 
 	return uapi.HttpResponse{
 		Json: parsedStock,

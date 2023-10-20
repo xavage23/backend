@@ -7,8 +7,10 @@ import (
 )
 
 type StockRatio struct {
-	Name  string  `json:"name" description:"The name of the ratio"`
-	Ratio float64 `json:"ratio" description:"The ratio value"`
+	ID        string         `db:"id" json:"id" description:"The ID of the stock ratio"`
+	Name      string         `db:"name" json:"name" description:"The name of the stock ratio"`
+	ValueText string         `db:"value_text" json:"value_text" description:"The value of the stock ratio as text"`
+	Value     pgtype.Numeric `db:"value" json:"value" description:"The value of the stock ratio"`
 }
 
 type PriorPricePoint struct {
@@ -27,7 +29,7 @@ type Stock struct {
 	KnownPrices  []int64           `db:"-" json:"known_prices" description:"The known prices of the stock in cents"`
 	PriorPrices  []PriorPricePoint `db:"-" json:"prior_prices" description:"The prices of the stock in cents"`
 	CreatedAt    time.Time         `db:"created_at" json:"created_at" description:"The time the stock was created"`
-	Ratios       []*StockRatio     `db:"-" json:"ratios,omitempty" description:"The ratios of the stock, may not always be present"`
+	Ratios       []StockRatio      `db:"-" json:"ratios,omitempty" description:"The ratios of the stock, may not always be present"`
 	Includes     []string          `db:"-" json:"includes,omitempty" description:"The included data present in this stock"`
 }
 

@@ -12,6 +12,7 @@ from piccolo.columns.column_types import UUID
 from piccolo.columns.column_types import Varchar
 from piccolo.columns.column_types import Array
 from piccolo.columns.column_types import Integer
+from piccolo.columns.column_types import Numeric
 from piccolo.columns.defaults.timestamp import TimestampNow
 from piccolo.columns.defaults.timestamptz import TimestamptzNow
 from piccolo.columns.defaults.uuid import UUID4
@@ -508,6 +509,57 @@ class Stocks(Table, tablename="stocks"):
         secret=False,
     )
 
+class StockRatio(Table, tablename="stock_ratio"):
+    id = UUID(
+        default=UUID4(),
+        null=False,
+        primary_key=True,
+        unique=False,
+        index=True,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    stock_id = ForeignKey(
+        references=Stocks,
+        on_delete=OnDelete.cascade,
+        on_update=OnUpdate.cascade,
+        target_column="id",
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    name = Text(
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    value_text = Text(
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    value = Numeric(
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
 
 class News(Table, tablename="news"):
     id = UUID(
