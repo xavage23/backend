@@ -1,8 +1,9 @@
+import uuid
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import redis
 from admin.piccolo_app import APP_CONFIG
-from admin.tables import Users as UserTable
+from admin.tables import Games, UserTransactions, Users as UserTable
 
 from fastapi import FastAPI, Request
 from piccolo_admin.endpoints import create_admin, FormConfig
@@ -149,6 +150,38 @@ class FlushRedisCache(BaseModel):
 
         return "Redis cache cleared."
 
+class ClearUserTransactionsOfUser(BaseModel):
+    user_id: uuid.UUID
+    game_id: uuid.UUID
+    pretend_mode: bool
+
+    @staticmethod
+    async def action(request: Request, data: "ClearUserTransactionsOfUser"):
+        if not data.user_id:
+            raise ValueError("User ID cannot be empty")
+
+        if not data.game_id:
+            raise ValueError("Game ID cannot be empty")
+
+        user = await UserTable.select(UserTable.id).where(UserTable.id == data.user_id).first().run()
+
+        if not user:
+            raise ValueError("User ID does not exist. Please ensure that you are using the user ID [see the Users table] and not the username.")
+
+        game = await UserTable.select(UserTable.id).where(Games.id == data.game_id).first().run()
+
+        if not game:
+            raise ValueError("Game ID does not exist. Please ensure that you are using the game ID [see the Games table] and not the game code.")
+
+        # Delete transactions
+        num_rows = await UserTransactions.count().where(UserTransactions.user_id == data.user_id, UserTransactions.game_id == data.game_id).run()
+
+        if data.pretend_mode:
+            raise ValueError(f"A total of {num_rows} transactions will be deleted. Please run this command again without the pretend_mode flag to confirm.")
+
+        await UserTransactions.delete().where(UserTransactions.user_id == data.user_id, UserTransactions.game_id == data.game_id).run()
+            
+
 app = FastAPI(
     routes=[
         Mount(
@@ -190,6 +223,12 @@ prior_stock_prices:{game_id}:{ticker} to clear the prior stock prices cache for 
                         pydantic_model=FlushRedisCache,
                         endpoint=FlushRedisCache.action,
                         description="Flushes the Redis cache. This will clear all cached data."
+                    ),
+                    FormConfig(
+                        name="Clear User Transactions Of User",
+                        pydantic_model=ClearUserTransactionsOfUser,
+                        endpoint=ClearUserTransactionsOfUser.action,
+                        description="WORK_IN_PROGRESS! Clears all transactions of a user in a game. Can be used for anti-spam purposes et al. Before committing, be sure to keep pretend_mode enabled to avoid irreversible data loss."
                     ),
                 ],
                 # Required when running under HTTPS:
