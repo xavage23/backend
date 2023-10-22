@@ -1,0 +1,7 @@
+KSC # Samsung needs this
+NASDAQ
+NYSE
+PNK # Tencent Holdings Ltd. (TCEHY) - HKSE
+MIL # Stellantis N.V. (STLA) - Borsa Italiana
+NSE # India
+STO # Sweden Security Exchange
