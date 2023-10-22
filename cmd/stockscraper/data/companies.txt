@@ -1,0 +1,130 @@
+Apple Inc.
+Microsoft Corporation
+Google # (Alphabet Inc.)
+Amazon.com Inc.
+Facebook # (Meta Platforms, Inc.)
+Intel Corporation
+IBM # (International Business Machines Corporation)
+Adobe Inc.
+CRM # Salesforce.com, Inc (doesn't appear in the list)
+Oracle Corporation
+Cisco Systems, Inc.
+NVIDIA Corporation
+Netflix, Inc.
+Samsung Electronics Co., Ltd.
+HP Inc.
+Dell Technologies Inc.
+SAP SE
+# Twitter, Inc. (private delisted company)
+Alibaba Group Holding Limited
+TCEHY # Tencent Holdings Limited (doesn't appear in the list)
+
+# Finance and banking industry
+JPMorgan Chase & Co.
+Bank of America Corporation
+Wells Fargo & Co.
+Citigroup Inc.
+Goldman Sachs Group, Inc.
+# Morgan Stanley (ETF not supported)
+Berkshire Hathaway Inc.
+The Goldman Sachs Group, Inc.
+U.S. Bancorp
+PNC Financial Services Group, Inc.
+Capital One Financial Corporation
+American Express Company
+Visa Inc.
+Mastercard Incorporated
+PayPal Holdings, Inc.
+The Goldman Sachs Group, Inc.
+Charles Schwab Corporation
+BlackRock, Inc.
+AIG # (American International Group, Inc.)
+Allstate Corporation
+
+# Healthcare Industry:
+Johnson & Johnson
+Pfizer Inc.
+Roche Holdings AG
+Novartis AG
+Merck & Co., Inc.
+Gilead Sciences, Inc.
+Amgen Inc.
+AbbVie Inc.
+Bristol-Myers Squibb Company
+Eli Lilly and Company
+UnitedHealth Group Inc.
+Anthem, Inc.
+CVS Health Corporation
+Humana Inc.
+# Aetna Inc. (a subsidiary of CVS Health), not public
+Cigna Corporation
+Medtronic plc
+Abbott Laboratories
+Thermo Fisher Scientific Inc.
+# Moderna, Inc (no data available)
+
+# Automotive Industry:
+Toyota Motor Corporation
+General Motors Company
+Volkswagen AG
+Ford Motor Company
+Honda Motor Co., Ltd.
+Nissan Motor Co., Ltd.
+BMW # BMW AG
+Hyundai Motor Company
+MBG # Daimler AG (Mercedes-Benz)
+Tesla, Inc.
+STLAM # Fiat Chrysler Automobiles N.V. (now part of Stellantis N.V.)
+Subaru Corporation
+Kia Corporation
+POAHF # Porsche SE
+Mazda Motor Corporation
+Tata Motors Limited
+VOLV-B # Volvo Group
+Geely Automobile Holdings Limited
+Ferrari N.V.
+# Aston Martin Lagonda Global Holdings plc (ETFs are not supported)
+
+#Agriculture and Food Industry:
+Nestlé S.A.
+The Coca-Cola Company
+PepsiCo, Inc.
+Unilever PLC
+Procter & Gamble Co.
+Archer Daniels Midland Company
+Tyson Foods, Inc.
+Kraft Heinz Company
+Danone S.A.
+Mondelez International, Inc.
+General Mills, Inc.
+Kellogg Company
+Sysco Corporation
+# Cargill, Incorporated - private company
+SJM # The J.M. Smucker Company
+Hormel Foods Corporation
+The Hershey Company
+Conagra Brands, Inc.
+Campbell Soup Company
+McCormick & Company, Inc.
+
+# Energy Industry:
+Exxon Mobil Corporation
+Chevron Corporation
+SHEL # Royal Dutch Shell plc
+BP plc # (British Petroleum)
+TotalEnergies SE
+ConocoPhillips
+Eni S.p.A.
+# GAZP (Private company)
+Schlumberger Limited
+Halliburton Company
+NextEra Energy, Inc.
+Duke Energy Corporation
+Dominion Energy, Inc.
+E.ON SE
+# Siemens Energy AG (no data available)
+Vestas Wind Systems
+First Solar, Inc.
+Enphase Energy, Inc.
+Canadian Solar Inc.
+Brookfield Renewable Partners L.P.
