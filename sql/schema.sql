@@ -48,7 +48,9 @@ CREATE TABLE IF NOT EXISTS stock_ratios (
     name TEXT NOT NULL,
     value_text TEXT,
     value NUMERIC NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    price_index INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (stock_id, name, price_index)
 );
 
 CREATE TABLE IF NOT EXISTS stocks (

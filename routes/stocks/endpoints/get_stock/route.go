@@ -14,6 +14,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 var (
@@ -116,8 +117,6 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		}
 	}
 
-	included := []string{"prior_prices"}
-
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
 	if err != nil {
@@ -135,9 +134,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	parsedStock.PriorPrices = pp
-	parsedStock.Includes = included
+	parsedStock.Includes = []string{"prior_prices", "ratios"}
 
-	ratioRows, err := state.Pool.Query(d.Context, "SELECT "+stockRatioCols+" FROM stock_ratios WHERE stock_id = $1", parsedStock.ID)
+	ratioRows, err := state.Pool.Query(d.Context, "SELECT "+stockRatioCols+" FROM stock_ratios WHERE stock_id = $1 AND price_index = $2", parsedStock.ID, currentPriceIndex)
 
 	if err != nil {
 		state.Logger.Error(err)
@@ -148,6 +147,32 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		ratios = []types.StockRatio{}
+
+		// Get largest price index in stock_ratios for this stock ID
+		var maxPriceIndex pgtype.Int8
+
+		err := state.Pool.QueryRow(d.Context, "SELECT MAX(price_index) FROM stock_ratios WHERE stock_id = $1", parsedStock.ID).Scan(&maxPriceIndex)
+
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			state.Logger.Error(err)
+			return uapi.DefaultResponse(http.StatusInternalServerError)
+		}
+
+		if maxPriceIndex.Valid {
+			ratioRows, err := state.Pool.Query(d.Context, "SELECT "+stockRatioCols+" FROM stock_ratios WHERE stock_id = $1 AND price_index = $2", parsedStock.ID, maxPriceIndex.Int64)
+
+			if err != nil {
+				state.Logger.Error(err)
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+
+			ratios, err = pgx.CollectRows(ratioRows, pgx.RowToStructByName[types.StockRatio])
+
+			if err != nil {
+				state.Logger.Error(err)
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+		}
 	} else if err != nil {
 		state.Logger.Error(err)
 		return uapi.DefaultResponse(http.StatusInternalServerError)

@@ -560,6 +560,16 @@ class StockRatios(Table, tablename="stock_ratios"):
         db_column_name=None,
         secret=False,
     )
+    price_index = Integer(
+        default=0,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False
+    )
 
 class News(Table, tablename="news"):
     id = UUID(
