@@ -8,8 +8,8 @@ from pydantic import BaseModel
 import requests
 from utils import debug_print, yellow_print
 
-class YahooAPIResponse(BaseModel):
-    """A response from the Yahoo Finance API"""
+class APIResponse(BaseModel):
+    """A response from an API"""
     status_code: int
     content: str
     cached: bool
@@ -22,16 +22,24 @@ class YahooAPIResponse(BaseModel):
         """Convert the response to JSON"""
         return orjson.loads(self.content)
 
-class YahooAPIClient():
-    """A client for the Yahoo Finance API"""
+class APIClient():
+    """A client for the stockscraper API"""
     _sess: requests.Session
+    alpha_vantage_key: str
 
-    def __init__(self):
+    def __init__(self, alpha_vantage_key: str):
+        self.alpha_vantage_key = alpha_vantage_key
         self._sess = requests.Session()
 
         self._sess.headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:88.0) Gecko/20100101 Firefox/88.0"
         }
+    
+    def clear_cache(self, key: str): 
+        pathlib.Path("cache").mkdir(parents=True, exist_ok=True)
+
+        if os.path.exists(f"cache/{key}"):
+            os.remove(f"cache/{key}")
     
     def find_in_cache(self, key: str) -> str | None:
         """Find a file in the cache folder"""
@@ -48,23 +56,23 @@ class YahooAPIClient():
         with open(f"cache/{key}", "w") as f:
             f.write(value)
     
-    def cached_get(self, cache_key: str, url: str, params: dict[str, Any] = None) -> YahooAPIResponse:
+    def cached_get(self, cache_key: str, url: str, params: dict[str, Any] = None) -> APIResponse:
         """Get a URL, but cache the response"""
         cached = self.find_in_cache(cache_key)
         if cached:
-            return YahooAPIResponse(
+            return APIResponse(
                 status_code=200,
                 content=cached,
                 cached=True
             )
         
-        debug_print(f"YahooAPIClient.cached_get: Fetching {url} as not cached")
+        debug_print(f"APIClient.cached_get: Fetching {url} as not cached")
 
         res = self._sess.get(url, params=params)
         if res.ok:
             self.cache(cache_key, res.text)
         
-        return YahooAPIResponse(
+        return APIResponse(
             status_code=res.status_code,
             content=res.text,
             cached=False
@@ -88,7 +96,7 @@ class Stock(BaseModel):
     isYahooFinance: bool
 
     @staticmethod
-    def get_from_company_name(api_client: YahooAPIClient, company_name: str) -> list["Stock"]:
+    def get_from_company_name(api_client: APIClient, company_name: str) -> list["Stock"]:
         """Get a list of stocks from a company name"""
         res = api_client.cached_get(f"tickerMap@{company_name}", f"https://query2.finance.yahoo.com/v1/finance/search?q={company_name}")
         if not res.ok():
@@ -107,7 +115,7 @@ class StockPrice(BaseModel):
     timestamp: list[int] | None = None
 
     @staticmethod
-    def get_stock_price(api_client: YahooAPIClient, ticker: str, epoch_time: int):
+    def get_stock_price(api_client: APIClient, ticker: str, epoch_time: int):
         # Convert the Unix epoch time to a human-readable date format
         date = datetime.datetime.utcfromtimestamp(epoch_time)
         next_date = datetime.datetime.utcfromtimestamp(epoch_time + 86400)
@@ -149,3 +157,35 @@ class StockPrice(BaseModel):
             yellow_print(f"Timestamp {sp.timestamp} for stock prices found for {ticker} at {epoch_time} is out of range! Must be between {int(date.timestamp())} and {int(next_date.timestamp())}")
 
         return sp
+
+class StockRatios(BaseModel):
+    pe_ratio: float
+    debt_to_equity_ratio: float
+    earnings_per_share: float
+    profit_margin: float
+
+    @staticmethod
+    def get_stock_ratios_for_time(api_client: APIClient, ticker: str, epoch_time: int):
+        # Note that we make use of alpha vantages api here instead of yahoo finance
+        # Convert the Unix epoch time to a human-readable date format
+        date = datetime.datetime.utcfromtimestamp(epoch_time)
+        next_date = datetime.datetime.utcfromtimestamp(epoch_time + 86400)
+
+        # Define the URL for Alpha Vantage API
+        url = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&apikey={api_client.alpha_vantage_key}&month={date.month}&year={date.year}'
+
+        # Send the GET request to Alpha Vantage API
+        res = api_client.cached_get(f"{ticker}@{epoch_time}@ratiosForTime", url)
+
+        if not res.ok():
+            raise ValueError(f"Failed to fetch stock ratios for {ticker} at {epoch_time}: {res.content} [status code: {res.status_code}]")
+
+        if not res.cached:
+            sleep(1)
+
+        # Parse the JSON response
+        res_json = res.to_json()
+
+        debug_print(res_json)
+
+        raise NotImplementedError("StockRatios.get_stock_ratios_for_time is not implemented yet")

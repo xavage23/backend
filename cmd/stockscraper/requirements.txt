@@ -1,3 +1,4 @@
 requests
 pydantic
 orjson
+alpha_vantage

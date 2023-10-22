@@ -5,7 +5,7 @@ Given a list of company names, find:
     - The stock price at specific dates
 """
 from pydantic import BaseModel
-from models import Stock, YahooAPIClient, StockPrice
+from models import Stock, StockRatios, APIClient, StockPrice
 from utils import red_print, bold_print, debug_print
 
 companies: list[str] = []
@@ -21,11 +21,18 @@ with open("data/accepted_exchanges.txt") as f:
 with open("data/times.txt") as f:
     times = [int(entry.strip().split("#")[0].strip()) for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
 
-api_client = YahooAPIClient()
+with open("data/alphavantage_key.txt") as f:
+    ak = f.read().strip()
+
+api_client = APIClient(ak)
+
+class SPRatios(BaseModel):
+    prices: StockPrice
+    ratios: StockRatios
 
 class SDData(BaseModel):
     stock: Stock
-    prices: dict[int, StockPrice]
+    prices: dict[int, SPRatios]
 
 stock_data: dict[str, SDData] = {}
 
@@ -62,19 +69,27 @@ for index, company in enumerate(companies):
     debug_print("Found stock:", stock)
 
     # Get the value of the stock at the given times
-    prices: dict[int, list[StockPrice]] = {}
+    prices: dict[int, SPRatios] = {}
     for time in times:
         try:
             res = StockPrice.get_stock_price(api_client, stock.symbol, time)
         except Exception as err:
             red_print(f"Failed to fetch stock prices for {company}, {err}")
             exit(1)
-        print(res)
+        debug_print(res)
 
         if not res:
             red_print(f"Failed to fetch stock prices for {company}")
             exit(1)
         
-        prices[time] = res
+        try:
+            r = StockRatios.get_stock_ratios_for_time(api_client, stock.symbol, time)
+            debug_print(r)
+        except Exception as err:
+            red_print(f"Failed to fetch stock ratios for {company}, {err}")
+            exit(1)
+        
+        prices[time] = SPRatios(prices=res, ratios=None)
+        exit(1)
 
     stock_data[stock.symbol] = SDData(stock=stock, prices=prices)
