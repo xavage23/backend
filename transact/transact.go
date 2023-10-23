@@ -129,6 +129,7 @@ func GetFullyParsedStock(ctx context.Context, stockId string, currentPriceIndex 
 }
 
 // Parses a list of user transactions to find the current balance of the user
+// TODO: Short as negative amount
 func GetUserCurrentBalance(initialBalance int64, uts []types.UserTransaction) int64 {
 	var currentBalance = initialBalance
 	for _, ut := range uts {

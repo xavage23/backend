@@ -1,0 +1,999 @@
+{
+    "symbol": "CI",
+    "annualEarnings": [
+        {
+            "fiscalDateEnding": "2023-09-30",
+            "reportedEPS": "11.54"
+        },
+        {
+            "fiscalDateEnding": "2022-12-31",
+            "reportedEPS": "23.23"
+        },
+        {
+            "fiscalDateEnding": "2021-12-31",
+            "reportedEPS": "20.47"
+        },
+        {
+            "fiscalDateEnding": "2020-12-31",
+            "reportedEPS": "18.42"
+        },
+        {
+            "fiscalDateEnding": "2019-12-31",
+            "reportedEPS": "16.94"
+        },
+        {
+            "fiscalDateEnding": "2018-12-31",
+            "reportedEPS": "14.3"
+        },
+        {
+            "fiscalDateEnding": "2017-12-31",
+            "reportedEPS": "10.45"
+        },
+        {
+            "fiscalDateEnding": "2016-12-31",
+            "reportedEPS": "8.11"
+        },
+        {
+            "fiscalDateEnding": "2015-12-31",
+            "reportedEPS": "8.66"
+        },
+        {
+            "fiscalDateEnding": "2014-12-31",
+            "reportedEPS": "7.43"
+        },
+        {
+            "fiscalDateEnding": "2013-12-31",
+            "reportedEPS": "6.78"
+        },
+        {
+            "fiscalDateEnding": "2012-12-31",
+            "reportedEPS": "5.99"
+        },
+        {
+            "fiscalDateEnding": "2011-12-31",
+            "reportedEPS": "5.21"
+        },
+        {
+            "fiscalDateEnding": "2010-12-31",
+            "reportedEPS": "4.66"
+        },
+        {
+            "fiscalDateEnding": "2009-12-31",
+            "reportedEPS": "3.99"
+        },
+        {
+            "fiscalDateEnding": "2008-12-31",
+            "reportedEPS": "3.4"
+        },
+        {
+            "fiscalDateEnding": "2007-12-31",
+            "reportedEPS": "3.97"
+        },
+        {
+            "fiscalDateEnding": "2006-12-31",
+            "reportedEPS": "3.17"
+        },
+        {
+            "fiscalDateEnding": "2005-12-31",
+            "reportedEPS": "2.72"
+        },
+        {
+            "fiscalDateEnding": "2004-12-31",
+            "reportedEPS": "2.59"
+        },
+        {
+            "fiscalDateEnding": "2003-12-31",
+            "reportedEPS": "1.9"
+        },
+        {
+            "fiscalDateEnding": "2002-12-31",
+            "reportedEPS": "2.21"
+        },
+        {
+            "fiscalDateEnding": "2001-12-31",
+            "reportedEPS": "2.36"
+        },
+        {
+            "fiscalDateEnding": "2000-12-31",
+            "reportedEPS": "2.28"
+        },
+        {
+            "fiscalDateEnding": "1999-12-31",
+            "reportedEPS": "1.85"
+        },
+        {
+            "fiscalDateEnding": "1998-12-31",
+            "reportedEPS": "1.54"
+        },
+        {
+            "fiscalDateEnding": "1997-12-31",
+            "reportedEPS": "1.57"
+        },
+        {
+            "fiscalDateEnding": "1996-12-31",
+            "reportedEPS": "1.46"
+        }
+    ],
+    "quarterlyEarnings": [
+        {
+            "fiscalDateEnding": "2023-06-30",
+            "reportedDate": "2023-08-03",
+            "reportedEPS": "6.13",
+            "estimatedEPS": "6.02",
+            "surprise": "0.11",
+            "surprisePercentage": "1.8272"
+        },
+        {
+            "fiscalDateEnding": "2023-03-31",
+            "reportedDate": "2023-05-05",
+            "reportedEPS": "5.41",
+            "estimatedEPS": "5.22",
+            "surprise": "0.19",
+            "surprisePercentage": "3.6398"
+        },
+        {
+            "fiscalDateEnding": "2022-12-31",
+            "reportedDate": "2023-02-03",
+            "reportedEPS": "4.96",
+            "estimatedEPS": "4.86",
+            "surprise": "0.1",
+            "surprisePercentage": "2.0576"
+        },
+        {
+            "fiscalDateEnding": "2022-09-30",
+            "reportedDate": "2022-11-03",
+            "reportedEPS": "6.04",
+            "estimatedEPS": "5.71",
+            "surprise": "0.33",
+            "surprisePercentage": "5.7793"
+        },
+        {
+            "fiscalDateEnding": "2022-06-30",
+            "reportedDate": "2022-08-04",
+            "reportedEPS": "6.22",
+            "estimatedEPS": "5.48",
+            "surprise": "0.74",
+            "surprisePercentage": "13.5036"
+        },
+        {
+            "fiscalDateEnding": "2022-03-31",
+            "reportedDate": "2022-05-06",
+            "reportedEPS": "6.01",
+            "estimatedEPS": "5.18",
+            "surprise": "0.83",
+            "surprisePercentage": "16.0232"
+        },
+        {
+            "fiscalDateEnding": "2021-12-31",
+            "reportedDate": "2022-02-03",
+            "reportedEPS": "4.77",
+            "estimatedEPS": "4.71",
+            "surprise": "0.06",
+            "surprisePercentage": "1.2739"
+        },
+        {
+            "fiscalDateEnding": "2021-09-30",
+            "reportedDate": "2021-11-04",
+            "reportedEPS": "5.73",
+            "estimatedEPS": "5.23",
+            "surprise": "0.5",
+            "surprisePercentage": "9.5602"
+        },
+        {
+            "fiscalDateEnding": "2021-06-30",
+            "reportedDate": "2021-08-05",
+            "reportedEPS": "5.24",
+            "estimatedEPS": "4.96",
+            "surprise": "0.28",
+            "surprisePercentage": "5.6452"
+        },
+        {
+            "fiscalDateEnding": "2021-03-31",
+            "reportedDate": "2021-05-07",
+            "reportedEPS": "4.73",
+            "estimatedEPS": "4.38",
+            "surprise": "0.35",
+            "surprisePercentage": "7.9909"
+        },
+        {
+            "fiscalDateEnding": "2020-12-31",
+            "reportedDate": "2021-02-04",
+            "reportedEPS": "3.51",
+            "estimatedEPS": "3.68",
+            "surprise": "-0.17",
+            "surprisePercentage": "-4.6196"
+        },
+        {
+            "fiscalDateEnding": "2020-09-30",
+            "reportedDate": "2020-11-05",
+            "reportedEPS": "4.41",
+            "estimatedEPS": "4.24",
+            "surprise": "0.17",
+            "surprisePercentage": "4.0094"
+        },
+        {
+            "fiscalDateEnding": "2020-06-30",
+            "reportedDate": "2020-07-30",
+            "reportedEPS": "5.81",
+            "estimatedEPS": "5.15",
+            "surprise": "0.66",
+            "surprisePercentage": "12.8155"
+        },
+        {
+            "fiscalDateEnding": "2020-03-31",
+            "reportedDate": "2020-04-30",
+            "reportedEPS": "4.69",
+            "estimatedEPS": "4.35",
+            "surprise": "0.34",
+            "surprisePercentage": "7.8161"
+        },
+        {
+            "fiscalDateEnding": "2019-12-31",
+            "reportedDate": "2020-02-06",
+            "reportedEPS": "4.31",
+            "estimatedEPS": "4.2",
+            "surprise": "0.11",
+            "surprisePercentage": "2.619"
+        },
+        {
+            "fiscalDateEnding": "2019-09-30",
+            "reportedDate": "2019-10-31",
+            "reportedEPS": "4.54",
+            "estimatedEPS": "4.36",
+            "surprise": "0.18",
+            "surprisePercentage": "4.1284"
+        },
+        {
+            "fiscalDateEnding": "2019-06-30",
+            "reportedDate": "2019-08-01",
+            "reportedEPS": "4.19",
+            "estimatedEPS": "3.74",
+            "surprise": "0.45",
+            "surprisePercentage": "12.0321"
+        },
+        {
+            "fiscalDateEnding": "2019-03-31",
+            "reportedDate": "2019-05-02",
+            "reportedEPS": "3.9",
+            "estimatedEPS": "3.73",
+            "surprise": "0.17",
+            "surprisePercentage": "4.5576"
+        },
+        {
+            "fiscalDateEnding": "2018-12-31",
+            "reportedDate": "2019-02-01",
+            "reportedEPS": "2.46",
+            "estimatedEPS": "2.42",
+            "surprise": "0.04",
+            "surprisePercentage": "1.6529"
+        },
+        {
+            "fiscalDateEnding": "2018-09-30",
+            "reportedDate": "2018-11-01",
+            "reportedEPS": "3.84",
+            "estimatedEPS": "3.44",
+            "surprise": "0.4",
+            "surprisePercentage": "11.6279"
+        },
+        {
+            "fiscalDateEnding": "2018-06-30",
+            "reportedDate": "2018-08-02",
+            "reportedEPS": "3.89",
+            "estimatedEPS": "3.21",
+            "surprise": "0.68",
+            "surprisePercentage": "21.1838"
+        },
+        {
+            "fiscalDateEnding": "2018-03-31",
+            "reportedDate": "2018-05-03",
+            "reportedEPS": "4.11",
+            "estimatedEPS": "3.44",
+            "surprise": "0.67",
+            "surprisePercentage": "19.4767"
+        },
+        {
+            "fiscalDateEnding": "2017-12-31",
+            "reportedDate": "2018-02-01",
+            "reportedEPS": "1.94",
+            "estimatedEPS": "1.89",
+            "surprise": "0.05",
+            "surprisePercentage": "2.6455"
+        },
+        {
+            "fiscalDateEnding": "2017-09-30",
+            "reportedDate": "2017-11-02",
+            "reportedEPS": "2.83",
+            "estimatedEPS": "2.36",
+            "surprise": "0.47",
+            "surprisePercentage": "19.9153"
+        },
+        {
+            "fiscalDateEnding": "2017-06-30",
+            "reportedDate": "2017-08-04",
+            "reportedEPS": "2.91",
+            "estimatedEPS": "2.48",
+            "surprise": "0.43",
+            "surprisePercentage": "17.3387"
+        },
+        {
+            "fiscalDateEnding": "2017-03-31",
+            "reportedDate": "2017-05-05",
+            "reportedEPS": "2.77",
+            "estimatedEPS": "2.45",
+            "surprise": "0.32",
+            "surprisePercentage": "13.0612"
+        },
+        {
+            "fiscalDateEnding": "2016-12-31",
+            "reportedDate": "2017-02-02",
+            "reportedEPS": "1.87",
+            "estimatedEPS": "1.74",
+            "surprise": "0.13",
+            "surprisePercentage": "7.4713"
+        },
+        {
+            "fiscalDateEnding": "2016-09-30",
+            "reportedDate": "2016-11-03",
+            "reportedEPS": "1.94",
+            "estimatedEPS": "1.91",
+            "surprise": "0.03",
+            "surprisePercentage": "1.5707"
+        },
+        {
+            "fiscalDateEnding": "2016-06-30",
+            "reportedDate": "2016-07-29",
+            "reportedEPS": "1.98",
+            "estimatedEPS": "2.39",
+            "surprise": "-0.41",
+            "surprisePercentage": "-17.1548"
+        },
+        {
+            "fiscalDateEnding": "2016-03-31",
+            "reportedDate": "2016-05-06",
+            "reportedEPS": "2.32",
+            "estimatedEPS": "2.15",
+            "surprise": "0.17",
+            "surprisePercentage": "7.907"
+        },
+        {
+            "fiscalDateEnding": "2015-12-31",
+            "reportedDate": "2016-02-04",
+            "reportedEPS": "1.87",
+            "estimatedEPS": "1.8",
+            "surprise": "0.07",
+            "surprisePercentage": "3.8889"
+        },
+        {
+            "fiscalDateEnding": "2015-09-30",
+            "reportedDate": "2015-11-06",
+            "reportedEPS": "2.28",
+            "estimatedEPS": "2.2",
+            "surprise": "0.08",
+            "surprisePercentage": "3.6364"
+        },
+        {
+            "fiscalDateEnding": "2015-06-30",
+            "reportedDate": "2015-07-30",
+            "reportedEPS": "2.55",
+            "estimatedEPS": "2.31",
+            "surprise": "0.24",
+            "surprisePercentage": "10.3896"
+        },
+        {
+            "fiscalDateEnding": "2015-03-31",
+            "reportedDate": "2015-04-30",
+            "reportedEPS": "1.96",
+            "estimatedEPS": "1.84",
+            "surprise": "0.12",
+            "surprisePercentage": "6.5217"
+        },
+        {
+            "fiscalDateEnding": "2014-12-31",
+            "reportedDate": "2015-02-05",
+            "reportedEPS": "1.69",
+            "estimatedEPS": "1.67",
+            "surprise": "0.02",
+            "surprisePercentage": "1.1976"
+        },
+        {
+            "fiscalDateEnding": "2014-09-30",
+            "reportedDate": "2014-10-30",
+            "reportedEPS": "1.95",
+            "estimatedEPS": "1.82",
+            "surprise": "0.13",
+            "surprisePercentage": "7.1429"
+        },
+        {
+            "fiscalDateEnding": "2014-06-30",
+            "reportedDate": "2014-07-31",
+            "reportedEPS": "1.96",
+            "estimatedEPS": "1.84",
+            "surprise": "0.12",
+            "surprisePercentage": "6.5217"
+        },
+        {
+            "fiscalDateEnding": "2014-03-31",
+            "reportedDate": "2014-05-01",
+            "reportedEPS": "1.83",
+            "estimatedEPS": "1.54",
+            "surprise": "0.29",
+            "surprisePercentage": "18.8312"
+        },
+        {
+            "fiscalDateEnding": "2013-12-31",
+            "reportedDate": "2014-02-07",
+            "reportedEPS": "1.39",
+            "estimatedEPS": "1.49",
+            "surprise": "-0.1",
+            "surprisePercentage": "-6.7114"
+        },
+        {
+            "fiscalDateEnding": "2013-09-30",
+            "reportedDate": "2013-10-31",
+            "reportedEPS": "1.89",
+            "estimatedEPS": "1.63",
+            "surprise": "0.26",
+            "surprisePercentage": "15.9509"
+        },
+        {
+            "fiscalDateEnding": "2013-06-30",
+            "reportedDate": "2013-08-01",
+            "reportedEPS": "1.78",
+            "estimatedEPS": "1.6",
+            "surprise": "0.18",
+            "surprisePercentage": "11.25"
+        },
+        {
+            "fiscalDateEnding": "2013-03-31",
+            "reportedDate": "2013-05-02",
+            "reportedEPS": "1.72",
+            "estimatedEPS": "1.43",
+            "surprise": "0.29",
+            "surprisePercentage": "20.2797"
+        },
+        {
+            "fiscalDateEnding": "2012-12-31",
+            "reportedDate": "2013-02-07",
+            "reportedEPS": "1.57",
+            "estimatedEPS": "1.48",
+            "surprise": "0.09",
+            "surprisePercentage": "6.0811"
+        },
+        {
+            "fiscalDateEnding": "2012-09-30",
+            "reportedDate": "2012-11-01",
+            "reportedEPS": "1.69",
+            "estimatedEPS": "1.36",
+            "surprise": "0.33",
+            "surprisePercentage": "24.2647"
+        },
+        {
+            "fiscalDateEnding": "2012-06-30",
+            "reportedDate": "2012-08-02",
+            "reportedEPS": "1.49",
+            "estimatedEPS": "1.42",
+            "surprise": "0.07",
+            "surprisePercentage": "4.9296"
+        },
+        {
+            "fiscalDateEnding": "2012-03-31",
+            "reportedDate": "2012-05-03",
+            "reportedEPS": "1.24",
+            "estimatedEPS": "1.3",
+            "surprise": "-0.06",
+            "surprisePercentage": "-4.6154"
+        },
+        {
+            "fiscalDateEnding": "2011-12-31",
+            "reportedDate": "2012-02-02",
+            "reportedEPS": "1.11",
+            "estimatedEPS": "1.19",
+            "surprise": "-0.08",
+            "surprisePercentage": "-6.7227"
+        },
+        {
+            "fiscalDateEnding": "2011-09-30",
+            "reportedDate": "2011-10-28",
+            "reportedEPS": "1.2",
+            "estimatedEPS": "1.23",
+            "surprise": "-0.03",
+            "surprisePercentage": "-2.439"
+        },
+        {
+            "fiscalDateEnding": "2011-06-30",
+            "reportedDate": "2011-08-04",
+            "reportedEPS": "1.53",
+            "estimatedEPS": "1.29",
+            "surprise": "0.24",
+            "surprisePercentage": "18.6047"
+        },
+        {
+            "fiscalDateEnding": "2011-03-31",
+            "reportedDate": "2011-05-05",
+            "reportedEPS": "1.37",
+            "estimatedEPS": "1.09",
+            "surprise": "0.28",
+            "surprisePercentage": "25.6881"
+        },
+        {
+            "fiscalDateEnding": "2010-12-31",
+            "reportedDate": "2011-02-03",
+            "reportedEPS": "1.15",
+            "estimatedEPS": "1.02",
+            "surprise": "0.13",
+            "surprisePercentage": "12.7451"
+        },
+        {
+            "fiscalDateEnding": "2010-09-30",
+            "reportedDate": "2010-10-29",
+            "reportedEPS": "1.12",
+            "estimatedEPS": "1.06",
+            "surprise": "0.06",
+            "surprisePercentage": "5.6604"
+        },
+        {
+            "fiscalDateEnding": "2010-06-30",
+            "reportedDate": "2010-08-05",
+            "reportedEPS": "1.38",
+            "estimatedEPS": "1.01",
+            "surprise": "0.37",
+            "surprisePercentage": "36.6337"
+        },
+        {
+            "fiscalDateEnding": "2010-03-31",
+            "reportedDate": "2010-05-06",
+            "reportedEPS": "1.01",
+            "estimatedEPS": "0.89",
+            "surprise": "0.12",
+            "surprisePercentage": "13.4831"
+        },
+        {
+            "fiscalDateEnding": "2009-12-31",
+            "reportedDate": "2010-02-04",
+            "reportedEPS": "1.03",
+            "estimatedEPS": "0.96",
+            "surprise": "0.07",
+            "surprisePercentage": "7.2917"
+        },
+        {
+            "fiscalDateEnding": "2009-09-30",
+            "reportedDate": "2009-11-05",
+            "reportedEPS": "1.13",
+            "estimatedEPS": "1.03",
+            "surprise": "0.1",
+            "surprisePercentage": "9.7087"
+        },
+        {
+            "fiscalDateEnding": "2009-06-30",
+            "reportedDate": "2009-07-30",
+            "reportedEPS": "1.14",
+            "estimatedEPS": "0.96",
+            "surprise": "0.18",
+            "surprisePercentage": "18.75"
+        },
+        {
+            "fiscalDateEnding": "2009-03-31",
+            "reportedDate": "2009-04-30",
+            "reportedEPS": "0.69",
+            "estimatedEPS": "0.91",
+            "surprise": "-0.22",
+            "surprisePercentage": "-24.1758"
+        },
+        {
+            "fiscalDateEnding": "2008-12-31",
+            "reportedDate": "2009-02-05",
+            "reportedEPS": "0.49",
+            "estimatedEPS": "0.41",
+            "surprise": "0.08",
+            "surprisePercentage": "19.5122"
+        },
+        {
+            "fiscalDateEnding": "2008-09-30",
+            "reportedDate": "2008-10-30",
+            "reportedEPS": "0.89",
+            "estimatedEPS": "1.06",
+            "surprise": "-0.17",
+            "surprisePercentage": "-16.0377"
+        },
+        {
+            "fiscalDateEnding": "2008-06-30",
+            "reportedDate": "2008-08-01",
+            "reportedEPS": "1.08",
+            "estimatedEPS": "0.97",
+            "surprise": "0.11",
+            "surprisePercentage": "11.3402"
+        },
+        {
+            "fiscalDateEnding": "2008-03-31",
+            "reportedDate": "2008-05-01",
+            "reportedEPS": "0.94",
+            "estimatedEPS": "0.95",
+            "surprise": "-0.01",
+            "surprisePercentage": "-1.0526"
+        },
+        {
+            "fiscalDateEnding": "2007-12-31",
+            "reportedDate": "2008-02-06",
+            "reportedEPS": "0.98",
+            "estimatedEPS": "0.98",
+            "surprise": "0",
+            "surprisePercentage": "0"
+        },
+        {
+            "fiscalDateEnding": "2007-09-30",
+            "reportedDate": "2007-11-02",
+            "reportedEPS": "1.14",
+            "estimatedEPS": "0.94",
+            "surprise": "0.2",
+            "surprisePercentage": "21.2766"
+        },
+        {
+            "fiscalDateEnding": "2007-06-30",
+            "reportedDate": "2007-08-01",
+            "reportedEPS": "0.96",
+            "estimatedEPS": "0.88",
+            "surprise": "0.08",
+            "surprisePercentage": "9.0909"
+        },
+        {
+            "fiscalDateEnding": "2007-03-31",
+            "reportedDate": "2007-05-02",
+            "reportedEPS": "0.89",
+            "estimatedEPS": "0.84",
+            "surprise": "0.05",
+            "surprisePercentage": "5.9524"
+        },
+        {
+            "fiscalDateEnding": "2006-12-31",
+            "reportedDate": "2007-02-07",
+            "reportedEPS": "0.87",
+            "estimatedEPS": "0.76",
+            "surprise": "0.11",
+            "surprisePercentage": "14.4737"
+        },
+        {
+            "fiscalDateEnding": "2006-09-30",
+            "reportedDate": "2006-11-01",
+            "reportedEPS": "0.83",
+            "estimatedEPS": "0.72",
+            "surprise": "0.11",
+            "surprisePercentage": "15.2778"
+        },
+        {
+            "fiscalDateEnding": "2006-06-30",
+            "reportedDate": "2006-08-02",
+            "reportedEPS": "0.77",
+            "estimatedEPS": "0.65",
+            "surprise": "0.12",
+            "surprisePercentage": "18.4615"
+        },
+        {
+            "fiscalDateEnding": "2006-03-31",
+            "reportedDate": "2006-05-03",
+            "reportedEPS": "0.7",
+            "estimatedEPS": "0.63",
+            "surprise": "0.07",
+            "surprisePercentage": "11.1111"
+        },
+        {
+            "fiscalDateEnding": "2005-12-31",
+            "reportedDate": "2006-02-08",
+            "reportedEPS": "0.66",
+            "estimatedEPS": "0.55",
+            "surprise": "0.11",
+            "surprisePercentage": "20"
+        },
+        {
+            "fiscalDateEnding": "2005-09-30",
+            "reportedDate": "2005-11-02",
+            "reportedEPS": "0.65",
+            "estimatedEPS": "0.54",
+            "surprise": "0.11",
+            "surprisePercentage": "20.3704"
+        },
+        {
+            "fiscalDateEnding": "2005-06-30",
+            "reportedDate": "2005-08-03",
+            "reportedEPS": "0.66",
+            "estimatedEPS": "0.52",
+            "surprise": "0.14",
+            "surprisePercentage": "26.9231"
+        },
+        {
+            "fiscalDateEnding": "2005-03-31",
+            "reportedDate": "2005-05-04",
+            "reportedEPS": "0.75",
+            "estimatedEPS": "0.5",
+            "surprise": "0.25",
+            "surprisePercentage": "50"
+        },
+        {
+            "fiscalDateEnding": "2004-12-31",
+            "reportedDate": "2005-02-09",
+            "reportedEPS": "0.8",
+            "estimatedEPS": "0.54",
+            "surprise": "0.26",
+            "surprisePercentage": "48.1481"
+        },
+        {
+            "fiscalDateEnding": "2004-09-30",
+            "reportedDate": "2004-11-03",
+            "reportedEPS": "0.59",
+            "estimatedEPS": "0.45",
+            "surprise": "0.14",
+            "surprisePercentage": "31.1111"
+        },
+        {
+            "fiscalDateEnding": "2004-06-30",
+            "reportedDate": "2004-08-04",
+            "reportedEPS": "0.58",
+            "estimatedEPS": "0.42",
+            "surprise": "0.16",
+            "surprisePercentage": "38.0952"
+        },
+        {
+            "fiscalDateEnding": "2004-03-31",
+            "reportedDate": "2004-04-30",
+            "reportedEPS": "0.62",
+            "estimatedEPS": "0.61",
+            "surprise": "0.01",
+            "surprisePercentage": "1.6393"
+        },
+        {
+            "fiscalDateEnding": "2003-12-31",
+            "reportedDate": "2004-02-06",
+            "reportedEPS": "0.55",
+            "estimatedEPS": "0.47",
+            "surprise": "0.08",
+            "surprisePercentage": "17.0213"
+        },
+        {
+            "fiscalDateEnding": "2003-09-30",
+            "reportedDate": "2003-10-31",
+            "reportedEPS": "0.48",
+            "estimatedEPS": "0.39",
+            "surprise": "0.09",
+            "surprisePercentage": "23.0769"
+        },
+        {
+            "fiscalDateEnding": "2003-06-30",
+            "reportedDate": "2003-08-01",
+            "reportedEPS": "0.38",
+            "estimatedEPS": "0.36",
+            "surprise": "0.02",
+            "surprisePercentage": "5.5556"
+        },
+        {
+            "fiscalDateEnding": "2003-03-31",
+            "reportedDate": "2003-05-02",
+            "reportedEPS": "0.49",
+            "estimatedEPS": "0.47",
+            "surprise": "0.02",
+            "surprisePercentage": "4.2553"
+        },
+        {
+            "fiscalDateEnding": "2002-12-31",
+            "reportedDate": "2003-02-07",
+            "reportedEPS": "0.42",
+            "estimatedEPS": "0.4",
+            "surprise": "0.02",
+            "surprisePercentage": "5"
+        },
+        {
+            "fiscalDateEnding": "2002-09-30",
+            "reportedDate": "2002-11-01",
+            "reportedEPS": "0.5",
+            "estimatedEPS": "0.5",
+            "surprise": "0",
+            "surprisePercentage": "0"
+        },
+        {
+            "fiscalDateEnding": "2002-06-30",
+            "reportedDate": "2002-08-02",
+            "reportedEPS": "0.65",
+            "estimatedEPS": "0.65",
+            "surprise": "0",
+            "surprisePercentage": "0"
+        },
+        {
+            "fiscalDateEnding": "2002-03-31",
+            "reportedDate": "2002-05-02",
+            "reportedEPS": "0.64",
+            "estimatedEPS": "0.63",
+            "surprise": "0.01",
+            "surprisePercentage": "1.5873"
+        },
+        {
+            "fiscalDateEnding": "2001-12-31",
+            "reportedDate": "2002-02-08",
+            "reportedEPS": "0.64",
+            "estimatedEPS": "0.6",
+            "surprise": "0.04",
+            "surprisePercentage": "6.6667"
+        },
+        {
+            "fiscalDateEnding": "2001-09-30",
+            "reportedDate": "2001-11-02",
+            "reportedEPS": "0.55",
+            "estimatedEPS": "0.53",
+            "surprise": "0.02",
+            "surprisePercentage": "3.7736"
+        },
+        {
+            "fiscalDateEnding": "2001-06-30",
+            "reportedDate": "2001-08-01",
+            "reportedEPS": "0.58",
+            "estimatedEPS": "0.59",
+            "surprise": "-0.01",
+            "surprisePercentage": "-1.6949"
+        },
+        {
+            "fiscalDateEnding": "2001-03-31",
+            "reportedDate": "2001-05-02",
+            "reportedEPS": "0.59",
+            "estimatedEPS": "0.59",
+            "surprise": "0",
+            "surprisePercentage": "0"
+        },
+        {
+            "fiscalDateEnding": "2000-12-31",
+            "reportedDate": "2001-02-09",
+            "reportedEPS": "0.6",
+            "estimatedEPS": "0.59",
+            "surprise": "0.01",
+            "surprisePercentage": "1.6949"
+        },
+        {
+            "fiscalDateEnding": "2000-09-30",
+            "reportedDate": "2000-11-02",
+            "reportedEPS": "0.59",
+            "estimatedEPS": "0.52",
+            "surprise": "0.07",
+            "surprisePercentage": "13.4615"
+        },
+        {
+            "fiscalDateEnding": "2000-06-30",
+            "reportedDate": "2000-08-01",
+            "reportedEPS": "0.57",
+            "estimatedEPS": "0.52",
+            "surprise": "0.05",
+            "surprisePercentage": "9.6154"
+        },
+        {
+            "fiscalDateEnding": "2000-03-31",
+            "reportedDate": "2000-05-01",
+            "reportedEPS": "0.52",
+            "estimatedEPS": "0.48",
+            "surprise": "0.04",
+            "surprisePercentage": "8.3333"
+        },
+        {
+            "fiscalDateEnding": "1999-12-31",
+            "reportedDate": "2000-02-08",
+            "reportedEPS": "0.55",
+            "estimatedEPS": "0.46",
+            "surprise": "0.09",
+            "surprisePercentage": "19.5652"
+        },
+        {
+            "fiscalDateEnding": "1999-09-30",
+            "reportedDate": "1999-11-01",
+            "reportedEPS": "0.49",
+            "estimatedEPS": "0.43",
+            "surprise": "0.06",
+            "surprisePercentage": "13.9535"
+        },
+        {
+            "fiscalDateEnding": "1999-06-30",
+            "reportedDate": "1999-08-02",
+            "reportedEPS": "0.41",
+            "estimatedEPS": "0.39",
+            "surprise": "0.02",
+            "surprisePercentage": "5.1282"
+        },
+        {
+            "fiscalDateEnding": "1999-03-31",
+            "reportedDate": "1999-05-03",
+            "reportedEPS": "0.4",
+            "estimatedEPS": "0.43",
+            "surprise": "-0.03",
+            "surprisePercentage": "-6.9767"
+        },
+        {
+            "fiscalDateEnding": "1998-12-31",
+            "reportedDate": "1999-02-09",
+            "reportedEPS": "0.35",
+            "estimatedEPS": "0.36",
+            "surprise": "-0.01",
+            "surprisePercentage": "-2.7778"
+        },
+        {
+            "fiscalDateEnding": "1998-09-30",
+            "reportedDate": "1998-11-02",
+            "reportedEPS": "0.38",
+            "estimatedEPS": "0.4",
+            "surprise": "-0.02",
+            "surprisePercentage": "-5"
+        },
+        {
+            "fiscalDateEnding": "1998-06-30",
+            "reportedDate": "1998-07-30",
+            "reportedEPS": "0.42",
+            "estimatedEPS": "0.4",
+            "surprise": "0.02",
+            "surprisePercentage": "5"
+        },
+        {
+            "fiscalDateEnding": "1998-03-31",
+            "reportedDate": "1998-04-30",
+            "reportedEPS": "0.39",
+            "estimatedEPS": "0.38",
+            "surprise": "0.01",
+            "surprisePercentage": "2.6316"
+        },
+        {
+            "fiscalDateEnding": "1997-12-31",
+            "reportedDate": "1998-02-10",
+            "reportedEPS": "0.39",
+            "estimatedEPS": "0.39",
+            "surprise": "0",
+            "surprisePercentage": "0"
+        },
+        {
+            "fiscalDateEnding": "1997-09-30",
+            "reportedDate": "1997-10-30",
+            "reportedEPS": "0.39",
+            "estimatedEPS": "0.38",
+            "surprise": "0.01",
+            "surprisePercentage": "2.6316"
+        },
+        {
+            "fiscalDateEnding": "1997-06-30",
+            "reportedDate": "1997-07-30",
+            "reportedEPS": "0.4",
+            "estimatedEPS": "0.38",
+            "surprise": "0.02",
+            "surprisePercentage": "5.2632"
+        },
+        {
+            "fiscalDateEnding": "1997-03-31",
+            "reportedDate": "1997-04-30",
+            "reportedEPS": "0.39",
+            "estimatedEPS": "0.34",
+            "surprise": "0.05",
+            "surprisePercentage": "14.7059"
+        },
+        {
+            "fiscalDateEnding": "1996-12-31",
+            "reportedDate": "1997-02-11",
+            "reportedEPS": "0.39",
+            "estimatedEPS": "0.38",
+            "surprise": "0.01",
+            "surprisePercentage": "2.6316"
+        },
+        {
+            "fiscalDateEnding": "1996-09-30",
+            "reportedDate": "1996-10-30",
+            "reportedEPS": "0.39",
+            "estimatedEPS": "0.35",
+            "surprise": "0.04",
+            "surprisePercentage": "11.4286"
+        },
+        {
+            "fiscalDateEnding": "1996-06-30",
+            "reportedDate": "1996-07-30",
+            "reportedEPS": "0.36",
+            "estimatedEPS": "0.32",
+            "surprise": "0.04",
+            "surprisePercentage": "12.5"
+        },
+        {
+            "fiscalDateEnding": "1996-03-31",
+            "reportedDate": "1996-04-30",
+            "reportedEPS": "0.32",
+            "estimatedEPS": "0.29",
+            "surprise": "0.03",
+            "surprisePercentage": "10.3448"
+        }
+    ]
+}

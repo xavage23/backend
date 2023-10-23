@@ -5,7 +5,7 @@ Given a list of company names, find:
     - The stock price at specific dates
 """
 from pydantic import BaseModel
-from models import Stock, StockRatios, APIClient, StockPrice
+from models import BadStockExchangeException, Stock, StockRatios, APIClient, StockPrice
 from utils import red_print, bold_print, debug_print
 
 companies: list[str] = []
@@ -28,13 +28,15 @@ api_client = APIClient(ak)
 
 class SPRatios(BaseModel):
     prices: StockPrice
-    ratios: StockRatios
 
 class SDData(BaseModel):
     stock: Stock
-    prices: dict[int, SPRatios]
+    prices: dict[int, StockPrice]
+    # ratios: dict[int, StockRatios]
 
 stock_data: dict[str, SDData] = {}
+
+ratio_bad_stocks: list[str] = []
 
 for index, company in enumerate(companies):
     bold_print(f"{index + 1}/{len(companies)}:", company)
@@ -81,15 +83,16 @@ for index, company in enumerate(companies):
         if not res:
             red_print(f"Failed to fetch stock prices for {company}")
             exit(1)
-        
-        try:
-            r = StockRatios.get_stock_ratios_for_time(api_client, stock.symbol, time)
-            debug_print(r)
-        except Exception as err:
-            red_print(f"Failed to fetch stock ratios for {company}, {err}")
-            exit(1)
-        
-        prices[time] = SPRatios(prices=res, ratios=None)
+                
+        prices[time] = res
+
+    try:
+        ratios = StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
+        debug_print(ratios)
+    except BadStockExchangeException:
+        ratio_bad_stocks.append(stock.symbol)
+    except Exception as err:
+        red_print(f"Failed to fetch stock ratios for {company}, {err}")
         exit(1)
 
     stock_data[stock.symbol] = SDData(stock=stock, prices=prices)
