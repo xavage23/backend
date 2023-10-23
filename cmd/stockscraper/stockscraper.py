@@ -88,7 +88,7 @@ for index, company in enumerate(companies):
 
     try:
         ratios = StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
-        debug_print(ratios)
+        #debug_print(ratios)
     except BadStockExchangeException:
         ratio_bad_stocks.append(stock.symbol)
     except Exception as err:
@@ -96,3 +96,5 @@ for index, company in enumerate(companies):
         exit(1)
 
     stock_data[stock.symbol] = SDData(stock=stock, prices=prices)
+
+print("Stocks with unknown ratios:", ratio_bad_stocks)
