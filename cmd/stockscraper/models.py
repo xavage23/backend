@@ -1,12 +1,13 @@
 import datetime
 import os
 import pathlib
+from pprint import pprint
 from time import sleep
 from typing import Any
 import orjson
 from pydantic import BaseModel
 import requests
-from utils import debug_print, green_print, yellow_print
+from utils import debug_print, green_print, red_print, yellow_print
 
 class APIResponse(BaseModel):
     """A response from an API"""
@@ -169,18 +170,14 @@ class StockPrice(BaseModel):
 class StockRatios(BaseModel):
     pe_ratio: float
     earnings_per_share: float
-    debt_to_equity_ratio: float
-    profit_margin: float
+    debt_to_equity_ratio: float | None = None
+    profit_margin: float | None = None
 
     @staticmethod
     def get_stock_ratios_for_time(api_client: APIClient, stock: Stock, prices: dict[int, StockPrice]):
         # This one is a bit painful to get
         # We essentially need to calculate the ratios ourselves
     
-        # Step 1. Get EPS. This allows us to take care of both PE ratio and EPS
-        # We do this using the alpha_vantage API
-        #
-        # Note that as we are using the EARNINGS function, we can cache this for all our stocks
         match stock.exchDisp:
             case "NASDAQ" | "NYSE":
                 res = api_client.cached_get(f"{stock.symbol}@EPS", f"https://www.alphavantage.co/query?function=EARNINGS&symbol={stock.symbol}&apikey={api_client.alpha_vantage_key}")
@@ -221,6 +218,23 @@ class StockRatios(BaseModel):
                     yellow_print(f"Alpha Vantage API rate limit reached! Waiting 1 day: {json_bs}")
                     sleep(86400)
                     return StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
+                
+                parsed_json_bs = []
+                
+                for bs in json_bs.get("quarterlyReports", []):
+                    bs_parsed = {}
+                    for k, v in bs.items():
+                        if k not in ["fiscalDateEnding", "reportedCurrency"]:
+                            if v == "None":
+                                bs_parsed[k] = None
+                            else:
+                                bs_parsed[k] = float(v)
+                        else:
+                            bs_parsed[k] = v
+                    
+                    parsed_json_bs.append(bs_parsed)
+                
+                balance_sheet = _AVBalanceSheet(reports=parsed_json_bs)
 
                 av_earnings = _AVEarnings(**json)
 
@@ -239,10 +253,9 @@ class StockRatios(BaseModel):
                             break
                     
                     if not annual_earnings:
-                        raise ValueError(f"No annual earnings found for {stock.symbol} at {epoch_time}: {res.content} [status code: {res.status_code}]")
+                        raise ValueError(f"No annual earnings found for {stock.symbol} at {epoch_time}")
                     
                     # Now we have the EPS, we can calculate the PE ratio
-
                     # To ensure some level of accuracy, get the stock price on the day of the reported EPS
                     sp_n: StockPrice | None = None
 
@@ -273,8 +286,53 @@ class StockRatios(BaseModel):
                         
                     pe_ratio = sp_n.close / annual_earnings.reportedEPS
 
-                    green_print("Earning DT:", earning_dt.strftime("%d/%m/%Y, %H:%M:%S"), "\nShare Price (normal):", sp.open, "\nShare Price (on earning)", sp_n.close, "\nEPS:", annual_earnings.reportedEPS, "\nPE ratio:", pe_ratio, "\nSymbol:", stock.symbol, "Date:", dt.strftime("%d/%m/%Y, %H:%M:%S"), "\nTimestamp:", epoch_time, "\n")
+                    green_print("Earning DT:", earning_dt.strftime("%d/%m/%Y, %H:%M:%S"), "\nShare Price (normal):", sp.open, "\nShare Price (on earning)", sp_n.close, "\nEPS:", annual_earnings.reportedEPS, "\nPE ratio:", pe_ratio, "\nSymbol:", stock.symbol, "\nDate:", dt.strftime("%d/%m/%Y, %H:%M:%S"), "\nTimestamp:", epoch_time, "\n")
 
+                    # Find, for the time period, the balance sheet
+                    balance_sheet_filtered: list[_AVBalanceSheetData] = []
+
+                    debt_to_equity_ratio: int | None = None
+                    profit_margin: int | None = None
+
+                    for bs in balance_sheet.reports:
+                        bs_dt = datetime.datetime.strptime(bs.fiscalDateEnding, "%Y-%m-%d")
+
+                        if bs_dt.year == dt.year:
+                            balance_sheet_filtered.append(bs)
+                    
+                    if not balance_sheet_filtered:
+                        red_print("No balance sheet found for", stock.symbol, "at", epoch_time, ". Debt to equity ratio and profit margin will be None")
+                        sleep(1)
+
+                    debug_print(f"Have {len(balance_sheet_filtered)} [{balance_sheet_filtered}] balance sheets for {stock.symbol} at {epoch_time}")
+
+                    for bs in balance_sheet_filtered:
+                        if bs.totalShareholderEquity and (bs.shortTermDebt or bs.longTermDebt):
+                            total_debt = (bs.shortTermDebt or 0) + (bs.longTermDebt or 0)
+                            debt_to_equity_ratio = total_debt / bs.totalShareholderEquity
+                            
+                        if bs.commonStockSharesOutstanding:
+                            profit_margin = annual_earnings.reportedEPS * bs.commonStockSharesOutstanding
+
+                        if debt_to_equity_ratio and profit_margin:
+                            break
+
+                    if not debt_to_equity_ratio:
+                        red_print("No debt found for", stock.symbol, "at", epoch_time, ". Debt to equity ratio will be None")
+                        sleep(1)
+                    
+                    if not profit_margin:
+                        red_print("No profit margin found for", stock.symbol, "at", epoch_time, ". Profit margin will be None")
+                        sleep(1)
+                    
+                    green_print("Debt to equity ratio:", debt_to_equity_ratio, "\nProfit margin:", profit_margin, "\nSymbol:", stock.symbol, "\nDate:", dt.strftime("%d/%m/%Y, %H:%M:%S"), "\nTimestamp:", epoch_time, "\n")
+
+                    return StockRatios(
+                        pe_ratio=pe_ratio,
+                        earnings_per_share=annual_earnings.reportedEPS,
+                        debt_to_equity_ratio=debt_to_equity_ratio,
+                        profit_margin=profit_margin
+                    )
             case _:
                 yellow_print(f"Stock exchange {stock.exchDisp} not implemented yet")
                 raise BadStockExchangeException("Stock exchange not implemented yet")
@@ -295,6 +353,17 @@ class _AVQuarterlyEarning(BaseModel):
 class _AVEarnings(BaseModel):
     annualEarnings: list[_AVAnnualEarning]
     quarterlyEarnings: list[_AVQuarterlyEarning]
+
+class _AVBalanceSheetData(BaseModel):
+    fiscalDateEnding: str
+    commonStockSharesOutstanding: float | None = None
+    shortTermDebt: float | None = None
+    longTermDebt: float | None = None
+    totalShareholderEquity: float | None = None
+
+# Note: this only includes the fields we need
+class _AVBalanceSheet(BaseModel):
+    reports: list[_AVBalanceSheetData]
 
 # Internal class to allow seeing which stock exchanges we need to add
 class BadStockExchangeException(Exception):
