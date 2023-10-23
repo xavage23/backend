@@ -44,6 +44,7 @@ class APIClient():
     def find_in_cache(self, key: str) -> str | None:
         """Find a file in the cache folder"""
         if not os.path.exists(f"cache/{key}"):
+            debug_print("APIClient.find_in_cache: Not found in cache:", key)
             return None
         
         with open(f"cache/{key}", "r") as f:
