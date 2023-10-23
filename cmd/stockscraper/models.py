@@ -187,18 +187,6 @@ class StockRatios(BaseModel):
                 if not res.ok():
                     raise ValueError(f"Failed to fetch EPS for {stock.symbol}: {res.content} [status code: {res.status_code}]")
 
-                if not res.cached:
-                    sleep(1)
-
-                # We also need the balance sheet of the stock, fetch that as well
-                res_bs = api_client.cached_get(f"{stock.symbol}@BS", f"https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={stock.symbol}&apikey={api_client.alpha_vantage_key}")
-
-                if not res_bs.ok():
-                    raise ValueError(f"Failed to fetch balance sheet for {stock.symbol}: {res_bs.content} [status code: {res_bs.status_code}]")
-
-                if not res_bs.cached:
-                    sleep(1)
-
                 json = res.to_json()
 
                 if json.get("Note"):
@@ -210,6 +198,26 @@ class StockRatios(BaseModel):
                 if json.get("Information"):
                     api_client.clear_cache(f"{stock.symbol}@EPS")
                     yellow_print(f"Alpha Vantage API rate limit reached! Waiting 1 day: {json}")
+                    sleep(86400)
+                    return StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
+
+                # We also need the balance sheet of the stock, fetch that as well
+                res_bs = api_client.cached_get(f"{stock.symbol}@BS", f"https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={stock.symbol}&apikey={api_client.alpha_vantage_key}")
+
+                if not res_bs.ok():
+                    raise ValueError(f"Failed to fetch balance sheet for {stock.symbol}: {res_bs.content} [status code: {res_bs.status_code}]")
+
+                json_bs = res_bs.to_json()
+
+                if json_bs.get("Note"):
+                    api_client.clear_cache(f"{stock.symbol}@BS")
+                    yellow_print(f"Alpha Vantage API rate limit reached! Waiting 1 minute: {json_bs}")
+                    sleep(60 * 1)
+                    return StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
+
+                if json_bs.get("Information"):
+                    api_client.clear_cache(f"{stock.symbol}@BS")
+                    yellow_print(f"Alpha Vantage API rate limit reached! Waiting 1 day: {json_bs}")
                     sleep(86400)
                     return StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
 
