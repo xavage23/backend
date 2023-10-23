@@ -310,11 +310,11 @@ class StockRatios(BaseModel):
                         if bs.totalShareholderEquity and (bs.shortTermDebt or bs.longTermDebt):
                             total_debt = (bs.shortTermDebt or 0) + (bs.longTermDebt or 0)
                             debt_to_equity_ratio = total_debt / bs.totalShareholderEquity
-                            
+                            break
+                    
+                    for bs in balance_sheet_filtered:
                         if bs.commonStockSharesOutstanding:
                             profit_margin = annual_earnings.reportedEPS * bs.commonStockSharesOutstanding
-
-                        if debt_to_equity_ratio and profit_margin:
                             break
 
                     if not debt_to_equity_ratio:
