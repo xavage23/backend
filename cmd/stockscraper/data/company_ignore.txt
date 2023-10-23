@@ -1,0 +1,8 @@
+Morgan Stanley # (ETF not supported)
+Aetna Inc. # (a subsidiary of CVS Health), not public
+Moderna, Inc # (no data available)
+STLAM # Fiat Chrysler Automobiles N.V. (now part of Stellantis N.V.),  Founded in 2021 yet seems to have a PE ratio for other stocks, may warrant a substitute
+Aston Martin Lagonda Global Holdings plc # (ETFs are not supported)
+Cargill, Incorporated # private company
+GAZP # (Private company)
+Siemens Energy AG # (no data available)

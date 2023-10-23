@@ -5,6 +5,7 @@ Given a list of company names, find:
     - The stock price at specific dates
 """
 import os
+from time import sleep
 from pydantic import BaseModel
 from models import BadStockExchangeException, Stock, StockRatios, APIClient, StockPrice, SupplementData
 from utils import red_print, bold_print, debug_print
@@ -13,6 +14,11 @@ from ruamel.yaml import YAML
 companies: list[str] = []
 accepted_exchanges: list[str] = []
 times: list[int] = []
+
+company_ignore_list: list[str] = []
+if os.path.exists("data/company_ignore.txt"):
+    with open("data/company_ignore.txt") as f:
+        company_ignore_list = [entry.strip().split("#")[0].strip() for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
 
 with open("data/companies.txt") as f:
     companies = [entry.strip().split("#")[0].strip() for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
@@ -25,6 +31,12 @@ with open("data/times.txt") as f:
 
 with open("data/alphavantage_key.txt") as f:
     ak = f.read().strip()
+
+for company in companies:
+    if company in company_ignore_list:
+        red_print(f"Company {company} is in the ignore list. Remove if not desired")
+        companies.remove(company)
+        sleep(1)
 
 supplement_data = SupplementData(root={})
 
@@ -55,7 +67,7 @@ for ticker, data in supplement_data.root.items():
 
         supplemental_ratios[ticker][int(price)] = StockRatios(**ratios)
 
-del ticker, data # Ensure we don't accidentally use this variable later
+del ticker, data, company_ignore_list # Ensure we don't accidentally use this variable later
 
 for index, company in enumerate(companies):
     bold_print(f"{index + 1}/{len(companies)}:", company)

@@ -20,19 +20,22 @@
     pe_ratio: 6.77 # September 2018
     earnings_per_share: 5.88 # 2018
     debt_to_equity_ratio: 0.0922 # September 2018
+    profit_margin: 18.99 # September 2018
   1574965800: # November 2019
     pe_ratio: 11.4 # September 2019
     earnings_per_share: 2.72 # 2019
     debt_to_equity_ratio: 0.060 # December 2019
+    profit_margin: 9.34 # December 2019
   1638248400: # November 2021
     pe_ratio: 13.3 # September 2021
     earnings_per_share: 4.96 # 2021
     debt_to_equity_ratio: 0.050 # December 2021
+    profit_margin: 14.01 # December 2021
   1669833000: # November 2022
     pe_ratio: 8.33 # September 2022
     earnings_per_share: 6.28 # 2022
     debt_to_equity_ratio: 0.017 # December 2022
-
+    profit_margin: 17.90 # December 2022
 
 # Kia Corporation (000270.KS)
 000270.KS:
@@ -40,18 +43,22 @@
     pe_ratio: 17.9 # September 2018
     earnings_per_share: 2.64 # 2018
     debt_to_equity_ratio: 0.234 # September 2018
+    profit_margin: 2.18 # September 2018
   1574965800: # November 2019
     pe_ratio: 10.3 # September 2019
     earnings_per_share: 3.94 # 2019
     debt_to_equity_ratio: 0.223 # December 2019
+    profit_margin: 3.17 # December 2019
   1638248400: # November 2021
     pe_ratio: 8.93 # September 2021
     earnings_per_share: 10.2 # 2021
     debt_to_equity_ratio: 0.268 # December 2021
+    profit_margin: 6.81 # December 2021
   1669833000: # November 2022
     pe_ratio: 6.4 # September 2022
     earnings_per_share: 10.6 # 2022
     debt_to_equity_ratio: 0.19 # December 2022
+    profit_margin: 6.26 # December 2022
 
 # Tencent Holdings ADR (TCEHY)
 TCEHY:
@@ -59,18 +66,22 @@ TCEHY:
     pe_ratio: 31 # September 2018
     earnings_per_share: 1.26 # 2018
     debt_to_equity_ratio: 0.552 # September 2018
+    profit_margin: 28.97 # September 2018
   1574965800: # November 2019
     pe_ratio: 28.5 # September 2019
     earnings_per_share: 1.43 # 2019
     debt_to_equity_ratio: 0.510 # December 2019
+    profit_margin: 24.81 # December 2019
   1638248400: # November 2021
     pe_ratio: 22.2 # September 2021
     earnings_per_share: 3.66 # 2021
     debt_to_equity_ratio: 0.374 # December 2021
+    profit_margin: 27.01 # December 2021
   1669833000: # November 2022
     pe_ratio: 17.1 # September 2022
     earnings_per_share: 2.88 # 2022
     debt_to_equity_ratio: 0.464 # December 2022
+    profit_margin: 33.09 # December 2022
 
 # Roche Holdings AG (RHHBY)
 RHHBY:
@@ -78,18 +89,22 @@ RHHBY:
     pe_ratio: 20.8 # January 2019 (closest)
     earnings_per_share: 12.5 # 2018
     debt_to_equity_ratio: 0.679 # December 2018
+    profit_margin: 18.51 # September 2018
   1574965800: # November 2019
     pe_ratio: 17.6 # January 2020 (closest)
     earnings_per_share: 16.3 # 2019
     debt_to_equity_ratio: 0.439 # December 2019
+    profit_margin: 21.92 # December 2019
   1638248400: # November 2021
     pe_ratio: 22.8 # January 2021 (closest)
     earnings_per_share: 17.9 # 2021
     debt_to_equity_ratio: 1.274 # December 2021
+    profit_margin: 22.20 # December 2021
   1669833000: # November 2022
     pe_ratio: 23 # Made up value due to lack of data
     earnings_per_share: 17.8 # 2022 
     debt_to_equity_ratio: 0.906 # December 2022
+    profit_margin: 19.62 # December 2022
 
 # Volkswagen A G (VWAGY)
 VWAGY:
@@ -97,18 +112,22 @@ VWAGY:
     pe_ratio: 7.52 # September 2018
     earnings_per_share: 27.8 # 2018
     debt_to_equity_ratio: 1.234 # September 2018
+    profit_margin: 5.68 # September 2018
   1574965800: # November 2019
     pe_ratio: 5.87 # September 2019
     earnings_per_share: 29.7 # 2019
     debt_to_equity_ratio: 1.335 # December 2019
+    profit_margin: 5.50 # December 2019
   1638248400: # November 2021
     pe_ratio: 7.22 # September 2021
     earnings_per_share: 34.5 # 2021
     debt_to_equity_ratio: 1.226 # December 2021
+    profit_margin: 6.15 # December 2021
   1669833000: # November 2022
     pe_ratio: 4.22 # September 2022
     earnings_per_share: 31.8 # 2022
     debt_to_equity_ratio: 1.040 # December 2022
+    profit_margin: 5.66 # December 2022
 
 # Nissan Motor Co Ltd (NSANY)
 NSANY:
@@ -116,15 +135,111 @@ NSANY:
     pe_ratio: 5.96 # September 2018
     earnings_per_share: 1.13 # 2018
     debt_to_equity_ratio: 1.471 # September 2018
+    profit_margin: 6.03 # September 2018
   1574965800: # November 2019
     pe_ratio: 9.91 # September 2019
     earnings_per_share: 0.099 # 2019
     debt_to_equity_ratio: 1.549 # December 2019
+    profit_margin: 0.41 # December 2019
   1638248400: # November 2021
     pe_ratio: 25.4 # September 2021
     earnings_per_share: 0.27 # 2021
     debt_to_equity_ratio: 1.647 # December 2021
+    profit_margin: 1.34 # December 2021
   1669833000: # November 2022
     pe_ratio: 11.9 # September 2022
     earnings_per_share: 0.25 # 2022
     debt_to_equity_ratio: 1.328 # December 2022
+    profit_margin: 1.30 # December 2022
+
+# Bayerische Motoren Werke ADR (BMWYY)
+BMWYY:
+  1537986600: # September 2018
+    pe_ratio: 6.87 # September 2018
+    earnings_per_share: 12.5 # 2018
+    debt_to_equity_ratio: 0 # September 2018
+    profit_margin: 8.23 # September 2018
+  1574965800: # November 2019
+    pe_ratio: 8.66 # September 2019
+    earnings_per_share: 8.35 # 2019
+    debt_to_equity_ratio: 1.614 # December 2019
+    profit_margin: 4.71 # December 2019
+  1638248400: # November 2021
+    pe_ratio: 4.57 # September 2021
+    earnings_per_share: 22 # 2021
+    debt_to_equity_ratio: 1.093 # December 2021
+    profit_margin: 11.18 # December 2021
+  1669833000: # November 2022
+    pe_ratio: 2.52 # September 2022
+    earnings_per_share: 29.5 # 2022
+    debt_to_equity_ratio: 0.790 # December 2022
+    profit_margin: 12.97 # December 2022
+
+# Hyundai Motor Company GDR (HYMTF)
+HYMTF:
+  1537986600: # September 2018
+    pe_ratio: 8.3 # September 2018
+    earnings_per_share: 2.58 # 2018
+    debt_to_equity_ratio: 1.045 # September 2018
+    profit_margin: 2.79 # September 2018
+  1574965800: # November 2019
+    pe_ratio: 7.46 # September 2019
+    earnings_per_share: 4.89 # 2019
+    debt_to_equity_ratio: 1.161 # December 2019
+    profit_margin: 2.83 # December 2019
+  1638248400: # November 2021
+    pe_ratio: 5.98 # September 2021
+    earnings_per_share: 8.24 # 2021
+    debt_to_equity_ratio: 1.438 # December 2021
+    profit_margin: 4.24 # December 2021
+  1669833000: # November 2022
+    pe_ratio: 2.81 # September 2022
+    earnings_per_share: 11 # 2022
+    debt_to_equity_ratio: 1.362 # December 2022
+    profit_margin: 5.21 # December 2022
+
+# Mercedes Benz Group AG (MBGAF)
+MBGAF:
+  1537986600: # September 2018
+    pe_ratio: 8.3 # September 2018
+    earnings_per_share: 2.58 # 2018
+    debt_to_equity_ratio: 1.824 # September 2018
+    profit_margin: 5.37 # September 2018
+  1574965800: # November 2019
+    pe_ratio: 7.46 # September 2019
+    earnings_per_share: 4.89 # 2019
+    debt_to_equity_ratio: 2.127 # December 2019
+    profit_margin: 1.39 # December 2019
+  1638248400: # November 2021
+    pe_ratio: 5.98 # September 2021
+    earnings_per_share: 8.24 # 2021
+    debt_to_equity_ratio: 1.269 # December 2021
+    profit_margin: 16.98 # December 2021
+  1669833000: # November 2022
+    pe_ratio: 2.81 # September 2022
+    earnings_per_share: 11 # 2022
+    debt_to_equity_ratio: 0.957 # December 2022
+    profit_margin: 9.66 # December 2022
+
+# Subaru 2 Unsponsored (FUJHY)
+000270.KS:
+  1537986600: # September 2018
+    pe_ratio: # September 2018
+    earnings_per_share: # 2018
+    debt_to_equity_ratio: # September 2018
+    profit_margin: # September 2018
+  1574965800: # November 2019
+    pe_ratio: # September 2019
+    earnings_per_share: # 2019
+    debt_to_equity_ratio: # December 2019
+    profit_margin: # December 2019
+  1638248400: # November 2021
+    pe_ratio: # September 2021
+    earnings_per_share: # 2021
+    debt_to_equity_ratio: # December 2021
+    profit_margin: # December 2021
+  1669833000: # November 2022
+    pe_ratio: # September 2022
+    earnings_per_share: # 2022
+    debt_to_equity_ratio: # December 2022
+    profit_margin: # December 2022

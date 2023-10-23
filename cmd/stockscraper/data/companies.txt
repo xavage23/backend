@@ -25,7 +25,6 @@ Bank of America Corporation
 Wells Fargo & Co.
 Citigroup Inc.
 Goldman Sachs Group, Inc.
-# Morgan Stanley (ETF not supported)
 Berkshire Hathaway Inc.
 The Goldman Sachs Group, Inc.
 U.S. Bancorp
@@ -56,12 +55,10 @@ UnitedHealth Group Inc.
 Anthem, Inc.
 CVS Health Corporation
 Humana Inc.
-# Aetna Inc. (a subsidiary of CVS Health), not public
 Cigna Corporation
 Medtronic plc
 Abbott Laboratories
 Thermo Fisher Scientific Inc.
-# Moderna, Inc (no data available)
 
 # Automotive Industry:
 Toyota Motor Corporation
@@ -74,7 +71,6 @@ BMW # BMW AG
 Hyundai Motor Company
 MBG # Daimler AG (Mercedes-Benz)
 Tesla, Inc.
-STLAM # Fiat Chrysler Automobiles N.V. (now part of Stellantis N.V.)
 Subaru Corporation
 Kia Corporation
 POAHF # Porsche SE
@@ -83,7 +79,6 @@ Tata Motors Limited
 VOLV-B # Volvo Group
 Geely Automobile Holdings Limited
 Ferrari N.V.
-# Aston Martin Lagonda Global Holdings plc (ETFs are not supported)
 
 #Agriculture and Food Industry:
 Nestlé S.A.
@@ -99,7 +94,6 @@ Mondelez International, Inc.
 General Mills, Inc.
 Kellogg Company
 Sysco Corporation
-# Cargill, Incorporated - private company
 SJM # The J.M. Smucker Company
 Hormel Foods Corporation
 The Hershey Company
@@ -115,14 +109,12 @@ BP plc # (British Petroleum)
 TotalEnergies SE
 ConocoPhillips
 Eni S.p.A.
-# GAZP (Private company)
 Schlumberger Limited
 Halliburton Company
 NextEra Energy, Inc.
 Duke Energy Corporation
 Dominion Energy, Inc.
 E.ON SE
-# Siemens Energy AG (no data available)
 Vestas Wind Systems
 First Solar, Inc.
 Enphase Energy, Inc.

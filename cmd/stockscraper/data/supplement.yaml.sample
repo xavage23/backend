@@ -4,15 +4,19 @@
     pe_ratio: # September 2018
     earnings_per_share: # 2018
     debt_to_equity_ratio: # September 2018
+    profit_margin: # September 2018
   1574965800: # November 2019
     pe_ratio: # September 2019
     earnings_per_share: # 2019
     debt_to_equity_ratio: # December 2019
+    profit_margin: # December 2019
   1638248400: # November 2021
     pe_ratio: # September 2021
     earnings_per_share: # 2021
     debt_to_equity_ratio: # December 2021
+    profit_margin: # December 2021
   1669833000: # November 2022
     pe_ratio: # September 2022
     earnings_per_share: # 2022
     debt_to_equity_ratio: # December 2022
+    profit_margin: # December 2022
