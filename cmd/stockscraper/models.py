@@ -190,6 +190,15 @@ class StockRatios(BaseModel):
                 if not res.cached:
                     sleep(1)
 
+                # We also need the balance sheet of the stock, fetch that as well
+                res_bs = api_client.cached_get(f"{stock.symbol}@BS", f"https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={stock.symbol}&apikey={api_client.alpha_vantage_key}")
+
+                if not res_bs.ok():
+                    raise ValueError(f"Failed to fetch balance sheet for {stock.symbol}: {res_bs.content} [status code: {res_bs.status_code}]")
+
+                if not res_bs.cached:
+                    sleep(1)
+
                 json = res.to_json()
 
                 if json.get("Note"):
