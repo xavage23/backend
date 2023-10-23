@@ -1,4 +1,4 @@
 requests
 pydantic
 orjson
-alpha_vantage
+ruamel.yaml

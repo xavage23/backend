@@ -1,13 +1,15 @@
 import datetime
 import os
 import pathlib
-from pprint import pprint
 from time import sleep
 from typing import Any
 import orjson
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 import requests
 from utils import debug_print, green_print, red_print, yellow_print
+
+class SupplementData(RootModel):
+    root: dict[str, dict[int, dict[str, float]]]
 
 class APIResponse(BaseModel):
     """A response from an API"""
@@ -238,6 +240,7 @@ class StockRatios(BaseModel):
 
                 av_earnings = _AVEarnings(**json)
 
+                srs: dict[int, StockRatios] = {}
                 for epoch_time, sp in prices.items():
                     dt = datetime.datetime.utcfromtimestamp(epoch_time)
 
@@ -327,12 +330,14 @@ class StockRatios(BaseModel):
                     
                     green_print("Debt to equity ratio:", debt_to_equity_ratio, "\nProfit margin:", profit_margin, "\nSymbol:", stock.symbol, "\nDate:", dt.strftime("%d/%m/%Y, %H:%M:%S"), "\nTimestamp:", epoch_time, "\n")
 
-                    return StockRatios(
+                    srs[epoch_time] = StockRatios(
                         pe_ratio=pe_ratio,
                         earnings_per_share=annual_earnings.reportedEPS,
                         debt_to_equity_ratio=debt_to_equity_ratio,
                         profit_margin=profit_margin
                     )
+                
+                return srs
             case _:
                 yellow_print(f"Stock exchange {stock.exchDisp} not implemented yet")
                 raise BadStockExchangeException("Stock exchange not implemented yet")

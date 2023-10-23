@@ -4,9 +4,11 @@ Given a list of company names, find:
     - The stocks ticker symbol
     - The stock price at specific dates
 """
+import os
 from pydantic import BaseModel
-from models import BadStockExchangeException, Stock, StockRatios, APIClient, StockPrice
+from models import BadStockExchangeException, Stock, StockRatios, APIClient, StockPrice, SupplementData
 from utils import red_print, bold_print, debug_print
+from ruamel.yaml import YAML
 
 companies: list[str] = []
 accepted_exchanges: list[str] = []
@@ -24,24 +26,42 @@ with open("data/times.txt") as f:
 with open("data/alphavantage_key.txt") as f:
     ak = f.read().strip()
 
-api_client = APIClient(ak)
+supplement_data = SupplementData(root={})
 
-class SPRatios(BaseModel):
-    prices: StockPrice
+if os.path.exists("data/supplement.yaml"):
+    with open("data/supplement.yaml") as f:
+        yaml=YAML(typ='safe')
+        supplement_data = SupplementData(root=yaml.load(f))
+
+api_client = APIClient(ak)
 
 class SDData(BaseModel):
     stock: Stock
     prices: dict[int, StockPrice]
-    # ratios: dict[int, StockRatios]
+    ratios: dict[int, StockRatios]
 
 stock_data: dict[str, SDData] = {}
 
 ratio_bad_stocks: list[str] = []
 
+supplemental_ratios: dict[str, dict[int, StockRatios]] = {}
+for ticker, data in supplement_data.root.items():
+    if len(data) == 0:
+        continue # ignore the ticker
+    
+    for price, ratios in data.items():
+        if ticker not in supplemental_ratios:
+            supplemental_ratios[ticker] = {}
+
+        supplemental_ratios[ticker][int(price)] = StockRatios(**ratios)
+
+del ticker, data # Ensure we don't accidentally use this variable later
+
 for index, company in enumerate(companies):
     bold_print(f"{index + 1}/{len(companies)}:", company)
 
     stock: Stock = None
+
     # Find ticker symbol from company name on Yahoo Finance
     try:
         res = Stock.get_from_company_name(api_client, company)
@@ -71,7 +91,7 @@ for index, company in enumerate(companies):
     debug_print("Found stock:", stock)
 
     # Get the value of the stock at the given times
-    prices: dict[int, SPRatios] = {}
+    prices: dict[int, StockRatios] = {}
     for time in times:
         try:
             res = StockPrice.get_stock_price(api_client, stock.symbol, time)
@@ -86,15 +106,25 @@ for index, company in enumerate(companies):
                 
         prices[time] = res
 
-    try:
-        ratios = StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
-        #debug_print(ratios)
-    except BadStockExchangeException:
-        ratio_bad_stocks.append(stock.symbol)
-    except Exception as err:
-        red_print(f"Failed to fetch stock ratios for {company}, {err}")
-        exit(1)
+    ratios: dict[int, StockRatios] = {}
 
-    stock_data[stock.symbol] = SDData(stock=stock, prices=prices)
+    if stock.symbol in supplemental_ratios:
+        for price in prices:
+            if price not in supplemental_ratios[stock.symbol]:
+                red_print(f"Failed to find supplemental ratios for {ticker} at {price}")
+                exit(1)
 
-print("Stocks with unknown ratios:", ratio_bad_stocks)
+        ratios = supplemental_ratios[stock.symbol]
+    else:
+        try:
+            ratios = StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
+            #debug_print(ratios)
+        except BadStockExchangeException:
+            ratio_bad_stocks.append(stock.symbol)
+        except Exception as err:
+            red_print(f"Failed to fetch stock ratios for {company}, {err}")
+            exit(1)
+
+    stock_data[stock.symbol] = SDData(stock=stock, prices=prices, ratios=ratios)
+
+print("Stocks with unknown ratios:", ratio_bad_stocks, "count =", len(ratio_bad_stocks))
