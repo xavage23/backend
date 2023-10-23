@@ -222,24 +222,93 @@ MBGAF:
     profit_margin: 9.66 # December 2022
 
 # Subaru 2 Unsponsored (FUJHY)
-000270.KS:
+FUJHY:
   1537986600: # September 2018
-    pe_ratio: # September 2018
-    earnings_per_share: # 2018
-    debt_to_equity_ratio: # September 2018
-    profit_margin: # September 2018
+    pe_ratio: 13 # September 2018
+    earnings_per_share: 2.22 # 2018
+    debt_to_equity_ratio: 0.032 # September 2018
+    profit_margin: 5.74 # September 2018
   1574965800: # November 2019
-    pe_ratio: # September 2019
-    earnings_per_share: # 2019
-    debt_to_equity_ratio: # December 2019
-    profit_margin: # December 2019
+    pe_ratio: 16.8 # September 2019
+    earnings_per_share: 1.62 # 2019
+    debt_to_equity_ratio: 0.104 # December 2019
+    profit_margin: 4.13 # December 2019
   1638248400: # November 2021
-    pe_ratio: # September 2021
-    earnings_per_share: # 2021
-    debt_to_equity_ratio: # December 2021
-    profit_margin: # December 2021
+    pe_ratio: 12.6 # September 2021
+    earnings_per_share: 0.76 # 2021
+    debt_to_equity_ratio: 0.188 # December 2021
+    profit_margin: 2.33 # December 2021
   1669833000: # November 2022
-    pe_ratio: # September 2022
-    earnings_per_share: # 2022
-    debt_to_equity_ratio: # December 2022
-    profit_margin: # December 2022
+    pe_ratio: 13.6 # September 2022
+    earnings_per_share: 1.56 # 2022
+    debt_to_equity_ratio: 0.161 # December 2022
+    profit_margin: 4.39 # December 2022
+
+# Mazda Motor Corp (MZDAY)
+MZDAY:
+  1537986600: # September 2018
+    pe_ratio: 11.5 # September 2018
+    earnings_per_share: 0.94 # 2018
+    debt_to_equity_ratio: 0.459 # September 2018
+    profit_margin: 2.05 # September 2018
+  1574965800: # November 2019
+    pe_ratio: 18.3 # September 2019
+    earnings_per_share: 0.87 # 2019
+    debt_to_equity_ratio: 0.503 # December 2019
+    profit_margin: 1.58 # December 2019
+  1638248400: # November 2021
+    pe_ratio: 50 # September 2021
+    earnings_per_share: 1.09 # 2021
+    debt_to_equity_ratio: 0.709 # December 2021
+    profit_margin: 2.50 # December 2021
+  1669833000: # November 2022
+    pe_ratio: 5.8 # September 2022
+    earnings_per_share: 1.85 # 2022
+    debt_to_equity_ratio: 0.502 # December 2022
+    profit_margin: 4.31 # December 2022
+
+# Tata Motors (TATAMOTORS.NS)
+TATAMOTORS.NS:
+  1537986600: # September 2018
+    pe_ratio: 29 # September 2018
+    earnings_per_share: 1.54 # 2018
+    debt_to_equity_ratio: 2.52 # September 2018
+    profit_margin: 0.32 # September 2018
+  1574965800: # November 2019
+    pe_ratio: -2.05 # June 2019 [September not available]
+    earnings_per_share: -6.24 # 2019
+    debt_to_equity_ratio: 0 # December 2019
+    profit_margin: -0.92 # December 2019
+  1638248400: # November 2021
+    pe_ratio: -3.46 # September 2021
+    earnings_per_share: -2.50 # 2021
+    debt_to_equity_ratio: 0 # December 2021
+    profit_margin: -6.61 # December 2021
+  1669833000: # November 2022
+    pe_ratio: -13.7 # September 2022
+    earnings_per_share: -1.96 # 2022
+    debt_to_equity_ratio: 9.23 # September 2022 [December not available]
+    profit_margin: -2.77 # September 2022 [December not available]
+
+# Volvo Group (VOLV-B.ST)
+VOLV-B.ST:
+  1537986600: # September 2018
+    pe_ratio: 11.3 # September 2018
+    earnings_per_share: 1.39 # 2018
+    debt_to_equity_ratio: 1.098 # September 2018
+    profit_margin: 7.13 # September 2018
+  1574965800: # November 2019
+    pe_ratio: 7.21 # September 2019
+    earnings_per_share: 1.88 # 2019
+    debt_to_equity_ratio: 1.073 # December 2019
+    profit_margin: 8.32 # December 2019
+  1638248400: # November 2021
+    pe_ratio: 13.3 # September 2021
+    earnings_per_share: 1.84 # 2021
+    debt_to_equity_ratio: 1.030 # December 2021
+    profit_margin: 8.83 # December 2021
+  1669833000: # November 2022
+    pe_ratio: 8.58 # September 2022
+    earnings_per_share: 1.57 # 2022
+    debt_to_equity_ratio: 1.220 # December 2022
+    profit_margin: 6.95 # December 2022

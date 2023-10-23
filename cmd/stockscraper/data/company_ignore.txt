@@ -6,3 +6,4 @@ Aston Martin Lagonda Global Holdings plc # (ETFs are not supported)
 Cargill, Incorporated # private company
 GAZP # (Private company)
 Siemens Energy AG # (no data available)
+POAHF # Porsche SE, it went public in 2022 so not much data is available before that period

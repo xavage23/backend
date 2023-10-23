@@ -8,7 +8,7 @@ import os
 from time import sleep
 from pydantic import BaseModel
 from models import BadStockExchangeException, Stock, StockRatios, APIClient, StockPrice, SupplementData
-from utils import red_print, bold_print, debug_print
+from utils import red_print, bold_print, debug_print, yellow_print
 from ruamel.yaml import YAML
 
 companies: list[str] = []
@@ -139,4 +139,5 @@ for index, company in enumerate(companies):
 
     stock_data[stock.symbol] = SDData(stock=stock, prices=prices, ratios=ratios)
 
-print("Stocks with unknown ratios:", ratio_bad_stocks, "count =", len(ratio_bad_stocks))
+if ratio_bad_stocks:
+    yellow_print("Stocks with unknown ratios:", ratio_bad_stocks, "count =", len(ratio_bad_stocks))

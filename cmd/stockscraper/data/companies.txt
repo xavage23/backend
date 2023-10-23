@@ -73,7 +73,6 @@ MBG # Daimler AG (Mercedes-Benz)
 Tesla, Inc.
 Subaru Corporation
 Kia Corporation
-POAHF # Porsche SE
 Mazda Motor Corporation
 Tata Motors Limited
 VOLV-B # Volvo Group
