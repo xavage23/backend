@@ -160,9 +160,9 @@ for round_map in round_maps:
     time_index_map: dict[int, int] = {}
     stocks: list[ImportStock] = []
 
-    for i in round_map.time_indexes:
+    for pi, i in enumerate(round_map.time_indexes):
         pt.append(times[i])
-        time_index_map[times[i]] = i
+        time_index_map[times[i]] = pi # So time index becomes 0, 1 etc
     
     for ticker, sd in stock_data.items():
         debug_print("Processing", ticker, "for round", round_map.display())
