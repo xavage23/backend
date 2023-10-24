@@ -2,7 +2,6 @@ import datetime
 import os
 import pathlib
 from time import sleep
-from typing import Any, Self
 import orjson
 from pydantic import BaseModel, RootModel
 import requests
@@ -201,6 +200,8 @@ class StockRatios(BaseModel):
                     sleep(86400)
                     return StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
 
+                av_earnings = _AVEarnings(**json)
+
                 # We also need the balance sheet of the stock, fetch that as well
                 res_bs = api_client.cached_get(f"{stock.symbol}@BS", f"https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={stock.symbol}&apikey={api_client.alpha_vantage_key}")
 
@@ -221,6 +222,7 @@ class StockRatios(BaseModel):
                     sleep(86400)
                     return StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
                 
+                # Parse the balance sheet
                 parsed_json_bs = []
                 
                 for bs in json_bs.get("quarterlyReports", []):
@@ -238,7 +240,43 @@ class StockRatios(BaseModel):
                 
                 balance_sheet = _AVBalanceSheet(reports=parsed_json_bs)
 
-                av_earnings = _AVEarnings(**json)
+                # Lastly fetch the income statement as well
+                res_is = api_client.cached_get(f"{stock.symbol}@IS", f"https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol={stock.symbol}&apikey={api_client.alpha_vantage_key}")
+
+                if not res_is.ok():
+                    raise ValueError(f"Failed to fetch income statement for {stock.symbol}: {res_is.content} [status code: {res_is.status_code}]")
+
+                json_is = res_is.to_json()
+
+                if json_is.get("Note"):
+                    api_client.clear_cache(f"{stock.symbol}@IS")
+                    yellow_print(f"Alpha Vantage API rate limit reached! Waiting 1 minute: {json_is}")
+                    sleep(60 * 1)
+                    return StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
+                
+                if json_is.get("Information"):
+                    api_client.clear_cache(f"{stock.symbol}@IS")
+                    yellow_print(f"Alpha Vantage API rate limit reached! Waiting 1 day: {json_is}")
+                    sleep(86400)
+                    return StockRatios.get_stock_ratios_for_time(api_client, stock, prices)
+
+                # Parse the income sheet
+                parsed_json_is = []
+                
+                for iss in json_is.get("quarterlyReports", []):
+                    is_parsed = {}
+                    for k, v in iss.items():
+                        if k not in ["fiscalDateEnding", "reportedCurrency"]:
+                            if v == "None":
+                                is_parsed[k] = None
+                            else:
+                                is_parsed[k] = float(v)
+                        else:
+                            is_parsed[k] = v
+                    
+                    parsed_json_is.append(is_parsed)
+
+                income_sheet = _AVIncomeStatement(reports=parsed_json_is)
 
                 srs: dict[int, StockRatios] = {}
                 for epoch_time, sp in prices.items():
@@ -291,11 +329,11 @@ class StockRatios(BaseModel):
 
                     green_print("Earning DT:", earning_dt.strftime("%d/%m/%Y, %H:%M:%S"), "\nShare Price (normal):", sp.open, "\nShare Price (on earning)", sp_n.close, "\nEPS:", annual_earnings.reportedEPS, "\nPE ratio:", pe_ratio, "\nSymbol:", stock.symbol, "\nDate:", dt.strftime("%d/%m/%Y, %H:%M:%S"), "\nTimestamp:", epoch_time, "\n")
 
-                    # Find, for the time period, the balance sheet
-                    balance_sheet_filtered: list[_AVBalanceSheetData] = []
-
                     debt_to_equity_ratio: int | None = None
                     profit_margin: int | None = None
+
+                    # Find, for the time period, the balance sheet
+                    balance_sheet_filtered: list[_AVBalanceSheetData] = []
 
                     for bs in balance_sheet.reports:
                         bs_dt = datetime.datetime.strptime(bs.fiscalDateEnding, "%Y-%m-%d")
@@ -304,7 +342,20 @@ class StockRatios(BaseModel):
                             balance_sheet_filtered.append(bs)
                     
                     if not balance_sheet_filtered:
-                        red_print("No balance sheet found for", stock.symbol, "at", epoch_time, ". Debt to equity ratio and profit margin will be None")
+                        red_print("No balance sheet found for", stock.symbol, "at", epoch_time, ". Debt to equity ratio will None")
+                        sleep(1)
+                    
+                    # Find, for the time period, the income statement
+                    income_sheet_filtered: list[_AVIncomeSheetData] = []
+
+                    for iss in income_sheet.reports:
+                        iss_dt = datetime.datetime.strptime(iss.fiscalDateEnding, "%Y-%m-%d")
+
+                        if iss_dt.year == dt.year:
+                            income_sheet_filtered.append(iss)
+
+                    if not income_sheet_filtered:
+                        red_print("No income statement found for", stock.symbol, "at", epoch_time, ". Profit margin will None")
                         sleep(1)
 
                     debug_print(f"Have {len(balance_sheet_filtered)} [{balance_sheet_filtered}] balance sheets for {stock.symbol} at {epoch_time}")
@@ -315,14 +366,19 @@ class StockRatios(BaseModel):
                             debt_to_equity_ratio = total_debt / bs.totalShareholderEquity
                             break
                     
-                    for bs in balance_sheet_filtered:
-                        if bs.commonStockSharesOutstanding:
-                            profit_margin = annual_earnings.reportedEPS * bs.commonStockSharesOutstanding
-                            break
-
                     if not debt_to_equity_ratio:
                         red_print("No debt found for", stock.symbol, "at", epoch_time, ". Debt to equity ratio will be None")
                         sleep(1)
+
+                    debug_print(f"Have {len(income_sheet_filtered)} [{income_sheet_filtered}] income sheets for {stock.symbol} at {epoch_time}")
+
+                    for iss in income_sheet_filtered:
+                        if iss.netIncome and iss.totalRevenue:
+                            profit_margin = (iss.netIncome / iss.totalRevenue) * 100
+                            break
+                        elif iss.costofGoodsAndServicesSold and iss.totalRevenue:
+                            profit_margin = ((iss.totalRevenue - iss.costofGoodsAndServicesSold) / iss.totalRevenue) * 100
+                            break
                     
                     if not profit_margin:
                         red_print("No profit margin found for", stock.symbol, "at", epoch_time, ". Profit margin will be None")
@@ -355,6 +411,7 @@ class _AVQuarterlyEarning(BaseModel):
     surprise: float | str
     surprisePercentage: float | str
 
+# Balance sheet
 class _AVEarnings(BaseModel):
     annualEarnings: list[_AVAnnualEarning]
     quarterlyEarnings: list[_AVQuarterlyEarning]
@@ -369,6 +426,17 @@ class _AVBalanceSheetData(BaseModel):
 # Note: this only includes the fields we need
 class _AVBalanceSheet(BaseModel):
     reports: list[_AVBalanceSheetData]
+
+# Income sheet
+class _AVIncomeSheetData(BaseModel):
+    fiscalDateEnding: str
+    netIncome: float | None = None
+    totalRevenue: float | None = None
+    costofGoodsAndServicesSold: float | None = None
+
+# Note: this only includes the fields we need
+class _AVIncomeStatement(BaseModel):
+    reports: list[_AVIncomeSheetData]
 
 # Internal class to allow seeing which stock exchanges we need to add
 class BadStockExchangeException(Exception):
