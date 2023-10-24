@@ -172,7 +172,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	currBalance := transact.GetUserCurrentBalance(initialBalance, uts)
+	currBalance, _ := transact.GetUserCurrentBalance(initialBalance, uts)
 
 	// Clamp/find best pIndex
 	pIndex := currentPriceIndex

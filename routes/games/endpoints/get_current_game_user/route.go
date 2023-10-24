@@ -96,7 +96,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		}
 	}
 
-	gu.CurrentBalance = transact.GetUserCurrentBalance(gu.InitialBalance, uts)
+	gu.CurrentBalance, gu.ShortAmount = transact.GetUserCurrentBalance(gu.InitialBalance, uts)
 
 	return uapi.HttpResponse{
 		Json: gu,

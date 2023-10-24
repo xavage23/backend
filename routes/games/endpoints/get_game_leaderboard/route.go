@@ -122,8 +122,16 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 		switch uts[i].Action {
 		case "buy":
+			if uts[i].Amount < 0 {
+				leaderboardUsers[uts[i].UserID].ShortAmount += -1 * uts[i].Amount * uts[i].SalePrice
+			}
+
 			leaderboardUsers[uts[i].UserID].CurrentBalance -= uts[i].SalePrice * uts[i].Amount
 		case "sell":
+			if uts[i].Amount < 0 {
+				leaderboardUsers[uts[i].UserID].ShortAmount += -1 * uts[i].Amount * uts[i].SalePrice
+			}
+
 			leaderboardUsers[uts[i].UserID].CurrentBalance += uts[i].SalePrice * uts[i].Amount
 		}
 	}

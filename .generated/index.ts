@@ -58,6 +58,7 @@ export interface Game {
   trading_enabled: boolean;
   name: string;
   created_at: string /* RFC3339 */;
+  price_times: string | null /* RFC3339, nullable */[];
   current_price_index: number /* int */;
   initial_balance: number /* int64 */;
   game_number: number /* int */;
@@ -83,12 +84,14 @@ export interface GameUser {
   game: Game;
   initial_balance: number /* int64 */;
   current_balance: number /* int64 */;
+  short_amount: number /* int64 */;
   created_at: string /* RFC3339 */;
 }
 export interface Leaderboard {
   user?: User;
   initial_balance: number /* int64 */;
   current_balance: number /* int64 */;
+  short_amount: number /* int64 */;
 }
 
 //////////
@@ -99,6 +102,7 @@ export interface StockRatio {
   name: string;
   value_text: string | null /* nullable */;
   value: number /* nullable */;
+  price_index: number /* int */;
 }
 export interface PriorPricePoint {
   prices: number /* int64 */[];
