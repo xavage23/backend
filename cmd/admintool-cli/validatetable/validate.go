@@ -15,14 +15,9 @@ var (
 )
 
 func ValidateTable(progname string, args []string) {
-	if len(args) != 2 {
-		fmt.Println("usage: validate-table <target/ref_column> <backer/column>")
-		fmt.Println("example: validate-table reviews/author users/user_id")
-		os.Exit(1)
-	}
-
-	target := args[0]
-	backer := args[1]
+	dbName := args[0]
+	target := args[1]
+	backer := args[2]
 
 	tgtSplit := strings.Split(target, "/")
 
@@ -39,7 +34,7 @@ func ValidateTable(progname string, args []string) {
 	}
 
 	var err error
-	_pool, err = pgxpool.New(common.Ctx, "postgres:///infinity")
+	_pool, err = pgxpool.New(common.Ctx, "postgres:///"+dbName)
 
 	if err != nil {
 		panic(err)
