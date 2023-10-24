@@ -1,0 +1,5 @@
+# Each line should be a space seperated list of the times to use for each game
+# E.g. first line of code:roundone 0 1 means that the roundone game will use the times 0 and 1
+code:roundone 0 1
+code:roundtwo 1 2
+code:roundthree 2 3

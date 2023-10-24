@@ -27,3 +27,7 @@ def debug_print(*args, **kwargs):
     print("\033[90m", end="")
     print(*args, **kwargs, end="")
     print("\033[0m")
+
+def text_strip(text: str) -> str:
+    """Given a line of text, strip it of whitespace and comments"""
+    return text.strip().split("#")[0].strip()

@@ -134,6 +134,18 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
+    price_times = Array(
+        default=[],
+        base_column=Timestamptz(),
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        help_text="The times corresponding to each price. Is optional"
+    )
     current_price_index = Integer(
         default=0,
         null=False,

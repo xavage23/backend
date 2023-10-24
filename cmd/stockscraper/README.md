@@ -1,6 +1,8 @@
 # Stock Scraper
 
-Given a list of company names, this program will scrape the ticker and stock price of each company and output the results to a JSON file that can then be imported using ``admintool-cli``.
+Given a list of company names, this program will scrape the ticker and stock price of each company and output the results to a YAML file that can then be imported using ``admintool-cli``.
+
+**Usage:** ``stockscraper.py [output.yaml]``
 
 ## Data
 
@@ -9,7 +11,8 @@ Note that data entries support comments starting with ``#`` either at the start 
 - ``accepted_exchanges.txt``: A list of accepted exchanges for finding a stock ticker. The defaults are good enough for most cases including the XAVAGE23 Bulls and Bears event this stock simulator was and is made for.
 - ``companies.txt``: A list of company names to scrape, newline separated. Parentheses are not supported and should thus be commented out (e.g. ``Company Name # (Blah)``)
 - ``company_ignore.txt``: In case you want to temporarily ignore a company, you can add it to this file. This is useful if you want to temporarily ignore a company that is not working properly / needs further review
-- ``times.txt`` the unix epoch (unix timestamp, see example in times.txt to get the stock price for. You can use [Epoch Converter](https://www.epochconverter.com/) to convert dates to unix epoch.
+- ``times.txt``: the unix epoch (unix timestamp, see example in times.txt to get the stock price for. You can use [Epoch Converter](https://www.epochconverter.com/) to convert dates to unix epoch.
+- ``roundmap.txt``: The times to use for each round. See file for more information.
 - ``alphavantage_key.txt``: Your Alpha Vantage API key. See [API Keys](#api-keys) for more information.
 
 ## Unknown Stocks

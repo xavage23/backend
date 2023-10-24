@@ -5,32 +5,46 @@ Given a list of company names, find:
     - The stock price at specific dates
 """
 import os
+import sys
 from time import sleep
-from pydantic import BaseModel
-from models import BadStockExchangeException, Stock, StockRatios, APIClient, StockPrice, SupplementData
-from utils import red_print, bold_print, debug_print, yellow_print
+from models import BadStockExchangeException, ImportFile, ImportGame, ImportStock, ImportStockRatio, SDData, RoundMap, Stock, StockRatios, APIClient, StockPrice, SupplementData
+from utils import red_print, bold_print, debug_print, yellow_print, text_strip
 from ruamel.yaml import YAML
+
+
+if len(sys.argv) != 2:
+    red_print(f"Usage: {sys.argv[0]} <output file>")
+    exit(1)
 
 companies: list[str] = []
 accepted_exchanges: list[str] = []
 times: list[int] = []
-
+alphavantage_key: str = ""
+supplemental_ratios: dict[str, dict[int, StockRatios]] = {}
+yaml = YAML(typ='safe')
 company_ignore_list: list[str] = []
+supplement_data = SupplementData(root={})
+stock_data: dict[str, SDData] = {}
+round_maps: list[RoundMap] = []
+
 if os.path.exists("data/company_ignore.txt"):
     with open("data/company_ignore.txt") as f:
-        company_ignore_list = [entry.strip().split("#")[0].strip() for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
+        company_ignore_list = [text_strip(entry) for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
 
 with open("data/companies.txt") as f:
-    companies = [entry.strip().split("#")[0].strip() for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
+    companies = [text_strip(entry) for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
 
 with open("data/accepted_exchanges.txt") as f:
-    accepted_exchanges = [entry.strip().split("#")[0].strip() for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
+    accepted_exchanges = [text_strip(entry) for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
 
 with open("data/times.txt") as f:
-    times = [int(entry.strip().split("#")[0].strip()) for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
+    times = [int(text_strip(entry)) for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
 
 with open("data/alphavantage_key.txt") as f:
-    ak = f.read().strip()
+    alphavantage_key = f.read().strip()
+
+with open("data/roundmap.txt") as f:
+    round_maps = [RoundMap.from_line(text_strip(entry)) for entry in f.read().splitlines() if entry.strip() and not entry.startswith("#")]
 
 for company in companies:
     if company in company_ignore_list:
@@ -38,25 +52,12 @@ for company in companies:
         companies.remove(company)
         sleep(1)
 
-supplement_data = SupplementData(root={})
-
 if os.path.exists("data/supplement.yaml"):
     with open("data/supplement.yaml") as f:
-        yaml=YAML(typ='safe')
         supplement_data = SupplementData(root=yaml.load(f))
 
-api_client = APIClient(ak)
+api_client = APIClient(alphavantage_key)
 
-class SDData(BaseModel):
-    stock: Stock
-    prices: dict[int, StockPrice]
-    ratios: dict[int, StockRatios]
-
-stock_data: dict[str, SDData] = {}
-
-ratio_bad_stocks: list[str] = []
-
-supplemental_ratios: dict[str, dict[int, StockRatios]] = {}
 for ticker, data in supplement_data.root.items():
     if len(data) == 0:
         continue # ignore the ticker
@@ -67,7 +68,13 @@ for ticker, data in supplement_data.root.items():
 
         supplemental_ratios[ticker][int(price)] = StockRatios(**ratios)
 
-del ticker, data, company_ignore_list # Ensure we don't accidentally use this variable later
+# End of config section
+
+del company, ticker, data, price, ratios, company_ignore_list, alphavantage_key, supplement_data # Ensure we don't accidentally use these variable later
+
+# Now parse the stocks
+
+ratio_bad_stocks: list[str] = []
 
 for index, company in enumerate(companies):
     bold_print(f"{index + 1}/{len(companies)}:", company)
@@ -141,3 +148,111 @@ for index, company in enumerate(companies):
 
 if ratio_bad_stocks:
     yellow_print("Stocks with unknown ratios:", ratio_bad_stocks, "count =", len(ratio_bad_stocks))
+    sleep(3)
+
+bold_print("=> Processing collected data to importable format")
+
+# Now create the ImportFile
+import_games: list[ImportGame] = []
+
+for round_map in round_maps:
+    pt: list[int] = []
+    time_index_map: dict[int, int] = {}
+    stocks: list[ImportStock] = []
+
+    for i in round_map.time_indexes:
+        pt.append(times[i])
+        time_index_map[times[i]] = i
+    
+    for ticker, sd in stock_data.items():
+        debug_print("Processing", ticker, "for round", round_map.display())
+
+        # Get corresponding prices for the stock based on pt
+        prices: list[int] = []
+
+        for pp in pt:
+            prices.append(int(sd.prices[pp].close * 100))
+
+        # Get corresponding ratios for the stock
+        ratios: list[ImportStockRatio] = []
+
+        for ts, ratio in sd.ratios.items():
+            if ts not in time_index_map:
+                debug_print("Skipping", ts, "for", ticker, "because it is not in the time index map [likely for next round]")
+                continue
+
+            debug_print(ts, ratio)
+            price_index = time_index_map[ts]
+
+            ratios.append(
+                ImportStockRatio(
+                    name="P/E Ratio",
+                    value=ratio.pe_ratio,
+                    price_index=price_index
+                )
+            )
+
+            ratios.append(
+                ImportStockRatio(
+                    name="Earnings Per Share",
+                    value=ratio.earnings_per_share,
+                    price_index=price_index
+                )
+            )
+
+            if ratio.debt_to_equity_ratio:
+                ratios.append(
+                    ImportStockRatio(
+                        name="Debt to Equity Ratio",
+                        value=ratio.debt_to_equity_ratio,
+                        price_index=price_index
+                    )
+                )
+
+            if ratio.profit_margin:
+                ratios.append(
+                    ImportStockRatio(
+                        name="Profit Margin",
+                        value=ratio.profit_margin,
+                        price_index=price_index
+                    )
+                )
+        
+        company_name = sd.stock.longname if sd.stock.longname else sd.stock.shortname
+
+        description = f"""
+{company_name} is a {sd.stock.sector if sd.stock.sector else ""} company on the {sd.stock.exchange} ({sd.stock.exchDisp}) exchange.
+
+The company sells '{sd.stock.typeDisp}' type of stock.
+"""
+
+        if sd.stock.score:
+            description += f"\n\nYahoo Finance Score: {sd.stock.score}."
+
+        stocks.append(
+            ImportStock(
+                ticker=ticker,
+                company_name=company_name,
+                prices=prices,
+                description=description,
+                ratios=ratios
+            )
+        )
+
+    import_games.append(
+        ImportGame(
+            identify_column_name=round_map.identify_column_name,
+            identify_column_value=round_map.identify_column_value,
+            price_times=pt,
+            stocks=stocks
+        )
+    )
+
+import_file = ImportFile(games=import_games)
+
+bold_print("=> Writing import file")
+
+yaml = YAML()
+
+with open(sys.argv[1], "w") as f:
+    yaml.dump(import_file.model_dump(), f)

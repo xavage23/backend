@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS games (
     game_migration_method TEXT NOT NULL DEFAULT 'move_entire_transaction_history', -- The method of migrating stocks from previous games
     publicly_listed BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not the game is publicly listed
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    price_times TIMESTAMPTZ[] NOT NULL DEFAULT '{}', -- The times corresponding to each price, is optional
     current_price_index INTEGER NOT NULL DEFAULT 0, -- The current price index of the game
     initial_balance BIGINT NOT NULL -- The initial balance of a user in the game in cents
 );

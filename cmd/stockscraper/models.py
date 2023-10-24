@@ -2,7 +2,7 @@ import datetime
 import os
 import pathlib
 from time import sleep
-from typing import Any
+from typing import Any, Self
 import orjson
 from pydantic import BaseModel, RootModel
 import requests
@@ -373,3 +373,61 @@ class _AVBalanceSheet(BaseModel):
 # Internal class to allow seeing which stock exchanges we need to add
 class BadStockExchangeException(Exception):
     pass
+
+# Internal class to represent a stock and its data
+class SDData(BaseModel):
+    stock: Stock
+    prices: dict[int, StockPrice]
+    ratios: dict[int, StockRatios]
+
+# Internal class to represent the round map file
+class RoundMap(BaseModel):
+    identify_column_name: str
+    identify_column_value: str
+    time_indexes: list[int]
+
+    def display(self) -> str:
+        return f"{self.identify_column_name}:{self.identify_column_value} ({', '.join([str(i) for i in self.time_indexes])})"
+
+    @staticmethod
+    def from_line(line: str) -> "RoundMap":
+        line_split = line.split(" ")
+
+        if not line_split:
+            raise ValueError(f"Failed to parse line '{line}' in roundmap")
+        
+        identify_column = line_split[0]
+
+        identify_column_split = identify_column.split(":")
+
+        if len(identify_column_split) != 2:
+            raise ValueError(f"Line '{line}' in roundmap does not have a valid identify column")
+
+        return RoundMap(
+            identify_column_name=identify_column_split[0],
+            identify_column_value=identify_column_split[1],
+            time_indexes=[int(i) for i in line_split[1:]]
+        )
+
+# Internal classes to represent the output YAML import file
+class ImportStockRatio(BaseModel):
+    name: str
+    value_text: str | None = None
+    value: float
+    price_index: int
+
+class ImportStock(BaseModel):
+    ticker: str
+    company_name: str
+    prices: list[int]
+    description: str
+    ratios: list[ImportStockRatio]
+
+class ImportGame(BaseModel):
+    identify_column_name: str
+    identify_column_value: str
+    price_times: list[int]
+    stocks: list[ImportStock]
+
+class ImportFile(BaseModel):
+    games: list[ImportGame]
