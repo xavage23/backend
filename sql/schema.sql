@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS games (
     code TEXT NOT NULL UNIQUE CHECK (code <> ''), -- Game code
     game_number INTEGER NOT NULL DEFAULT 1, -- Game number, all games below this game number will have their transactions moved to this game upon joining
     name TEXT NOT NULL UNIQUE CHECK (name <> ''), -- Game description
-    enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    enabled TIMESTAMPTZ, -- The time the game was enabled, if null the game is disabled
     trading_allowed BOOLEAN NOT NULL DEFAULT FALSE,
     old_stocks_carry_over BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not stocks from previous games must carry over
     game_migration_method TEXT NOT NULL DEFAULT 'move_entire_transaction_history', -- The method of migrating stocks from previous games

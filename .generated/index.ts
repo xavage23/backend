@@ -54,7 +54,7 @@ export const GameMigrationMethodNoMigration: GameMigrationMethod = "no_migration
 export interface Game {
   id: string;
   code: string;
-  enabled: boolean;
+  enabled: string | null /* RFC3339, nullable */;
   trading_enabled: boolean;
   name: string;
   created_at: string /* RFC3339 */;
@@ -69,6 +69,7 @@ export interface Game {
 export interface AvailableGame {
   game: Game;
   can_join: boolean;
+  is_enabled: boolean;
 }
 export interface GameJoinRequest {
   game_code: string;

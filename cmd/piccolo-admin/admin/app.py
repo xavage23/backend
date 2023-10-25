@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
@@ -181,6 +182,49 @@ class ClearUserTransactionsOfUser(BaseModel):
 
         await UserTransactions.delete().where(UserTransactions.user_id == data.user_id, UserTransactions.game_id == data.game_id).run()
             
+class EnableDisableGame(BaseModel):
+    game_id_or_code: str
+    enable: bool
+
+    @staticmethod
+    async def action(request: Request, data: "EnableDisableGame"):
+        if not data.game_id_or_code:
+            raise ValueError("Game ID or code cannot be empty")
+
+        # Check if game id is a uuid
+        try:
+            game_id = uuid.UUID(data.game_id_or_code)
+
+            game = await Games.select(Games.id).where(
+                Games.id == game_id
+            ).first().run()
+        except ValueError:
+            # Not a UUID
+            game = await Games.select(Games.id).where(
+                Games.code == data.game_id_or_code
+            ).first().run()
+
+        if not game:
+            raise ValueError("Game ID or code does not exist")
+
+        # Update game
+        if data.enable:
+            await Games.update(
+                enabled=datetime.datetime.now(tz=datetime.timezone.utc)
+            ).where(
+                Games.id == game["id"]
+            ).run()
+            
+            return "Game enabled."
+        else:
+            await Games.update(
+                enabled=None
+            ).where(
+                Games.id == game["id"]
+            ).run()
+
+            return "Game disabled."
+
 
 app = FastAPI(
     routes=[
@@ -229,6 +273,12 @@ prior_stock_prices:{game_id}:{ticker} to clear the prior stock prices cache for 
                         pydantic_model=ClearUserTransactionsOfUser,
                         endpoint=ClearUserTransactionsOfUser.action,
                         description="WORK_IN_PROGRESS! Clears all transactions of a user in a game. Can be used for anti-spam purposes et al. Before committing, be sure to keep pretend_mode enabled to avoid irreversible data loss."
+                    ),
+                    FormConfig(
+                        name="Enable Or Disable Game",
+                        pydantic_model=EnableDisableGame,
+                        endpoint=EnableDisableGame.action,
+                        description="Enables or disables a game. Disabling a game will prevent users from making transactions in that game."
                     ),
                 ],
                 # Required when running under HTTPS:

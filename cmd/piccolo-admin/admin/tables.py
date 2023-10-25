@@ -70,15 +70,16 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
-    enabled = Boolean(
-        default=False,
-        null=False,
+    enabled = Timestamptz(
+        default=None,
+        null=True,
         primary_key=False,
         unique=False,
         index=False,
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+        help_text="Updating this value may produce invalid results. Use the form instead"
     )
     trading_allowed = Boolean(
         default=True,

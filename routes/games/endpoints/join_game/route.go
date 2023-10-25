@@ -16,6 +16,7 @@ import (
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/infinitybotlist/eureka/uapi/ratelimit"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/exp/slices"
 )
 
@@ -82,7 +83,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	// Check that the game exists with the current code and passphrase
 	var gameId string
 	var initialBalance int
-	var enabled bool
+	var enabled pgtype.Timestamptz
 	var oldStocksCarryOver bool
 	var gameMigrationMethod types.GameMigrationMethod
 
@@ -100,10 +101,11 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	if !enabled {
+	state.Logger.Info(enabled.Time, time.Now())
+	if !enabled.Valid || enabled.Time.After(time.Now()) {
 		return uapi.HttpResponse{
 			Status: http.StatusForbidden,
-			Json:   types.ApiError{Message: "This game is not enabled and thus cannot be joined!"},
+			Json:   types.ApiError{Message: "This game is not enabled right now and thus cannot be joined!"},
 		}
 	}
 

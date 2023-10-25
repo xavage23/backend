@@ -4,6 +4,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	"time"
 	"xavagebb/constants"
 	"xavagebb/state"
 	"xavagebb/types"
@@ -124,7 +125,7 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 						}, false
 					}
 
-					var enabled bool
+					var enabled pgtype.Timestamptz
 					err = state.Pool.QueryRow(state.Context, "SELECT enabled FROM games WHERE id = $1", gameId).Scan(&enabled)
 
 					if errors.Is(err, pgx.ErrNoRows) {
@@ -141,10 +142,10 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 						}, false
 					}
 
-					if !enabled {
+					if !enabled.Valid || enabled.Time.After(time.Now()) {
 						return uapi.AuthData{}, uapi.HttpResponse{
 							Status: http.StatusForbidden,
-							Json:   types.ApiError{Message: "This game is (no longer) enabled!"},
+							Json:   types.ApiError{Message: "This game is not currently enabled!"},
 						}, false
 					}
 

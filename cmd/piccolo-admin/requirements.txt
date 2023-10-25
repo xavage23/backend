@@ -1,6 +1,6 @@
 piccolo[all]==1.0a2
 piccolo-api==1.0a2
-piccolo-admin
+piccolo-admin==1.0
 argon2-cffi
 xkcdpass
 redis[hiredis]

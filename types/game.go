@@ -17,7 +17,7 @@ const (
 type Game struct {
 	ID                  string               `db:"id" json:"id" description:"The ID of the game"`
 	Code                string               `db:"code" json:"code" description:"The code of the game"`
-	Enabled             bool                 `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
+	Enabled             pgtype.Timestamptz   `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
 	TradingAllowed      bool                 `db:"trading_allowed" json:"trading_enabled" description:"Whether trading is enabled"`
 	Name                string               `db:"name" json:"name" description:"The name of the game"`
 	CreatedAt           time.Time            `db:"created_at" json:"created_at" description:"The time the game was created"`
@@ -31,8 +31,9 @@ type Game struct {
 }
 
 type AvailableGame struct {
-	Game    Game `json:"game" description:"The game object"`
-	CanJoin bool `json:"can_join" description:"Whether the user is allowed to join the game"`
+	Game      Game `json:"game" description:"The game object"`
+	CanJoin   bool `json:"can_join" description:"Whether the user is allowed to join the game"`
+	IsEnabled bool `json:"is_enabled" description:"Whether the game is currently enabled"`
 }
 
 type GameJoinRequest struct {
