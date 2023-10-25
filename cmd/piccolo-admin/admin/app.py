@@ -14,6 +14,7 @@ from argon2 import PasswordHasher
 from xkcdpass import xkcd_password as xp
 import random
 import redis.asyncio as redis
+from contextlib import asynccontextmanager
 
 redis_cli = redis.ConnectionPool.from_url("redis://localhost:6379/3")
 
@@ -226,7 +227,32 @@ class EnableDisableGame(BaseModel):
             return "Game disabled."
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("=> [startup] Connecting to the database...")
+    try:
+        engine = engine_finder()
+        await engine.start_connection_pool()
+    except Exception:
+        print("Unable to connect to the database")
+        exit(1)
+
+    yield
+
+    print("=> [shutdown] Disconnecting from the database...")
+
+    try:
+        engine = engine_finder()
+        await engine.close_connection_pool()
+        await redis_cli.aclose()
+    except Exception:
+        print("Unable to connect to the database")
+        exit(1)
+
+
+
 app = FastAPI(
+    lifespan=lifespan
     routes=[
         Mount(
             "/admin/",
@@ -289,25 +315,7 @@ prior_stock_prices:{game_id}:{ticker} to clear the prior stock prices cache for 
     ],
 )
 
-@app.on_event("startup")
-async def open_database_connection_pool():
-    try:
-        engine = engine_finder()
-        await engine.start_connection_pool()
-    except Exception:
-        print("Unable to connect to the database")
-        exit(1)
 
-
-@app.on_event("shutdown")
-async def close_database_connection_pool():
-    try:
-        engine = engine_finder()
-        await engine.close_connection_pool()
-        await redis_cli.aclose()
-    except Exception:
-        print("Unable to connect to the database")
-        exit(1)
 
 @app.get("/")
 def admin_panel():
