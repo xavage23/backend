@@ -83,7 +83,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		availableGameList = append(availableGameList, types.AvailableGame{
 			Game:      game,
 			CanJoin:   canJoin,
-			IsEnabled: game.Enabled.Valid && game.Enabled.Time.After(time.Now()),
+			IsEnabled: game.Enabled.Valid && game.Enabled.Time.Before(time.Now()),
 		})
 	}
 
