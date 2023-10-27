@@ -14,6 +14,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 var (
@@ -69,9 +70,16 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
+	gameEnabledAt, ok := d.Auth.Data["gameEnabledAt"].(pgtype.Timestamptz)
+
+	if !ok {
+		state.Logger.Error("gameEnabledAt not found in auth data", d.Auth.Data)
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
 	withStocks := r.URL.Query().Get("with_stocks")
 
-	rows, err := state.Pool.Query(d.Context, "SELECT "+newsCols+" FROM news WHERE game_id = $1 AND published = true ORDER BY created_at DESC", gameId)
+	rows, err := state.Pool.Query(d.Context, "SELECT "+newsCols+" FROM news WHERE game_id = $1 AND published = true AND NOW() - $2 > show_at ORDER BY created_at DESC", gameId, gameEnabledAt)
 
 	if err != nil {
 		state.Logger.Error(err)

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from enum import Enum
 from piccolo.columns.base import OnDelete
 from piccolo.columns.base import OnUpdate
@@ -8,6 +9,7 @@ from piccolo.columns.column_types import Serial
 from piccolo.columns.column_types import Text
 from piccolo.columns.column_types import Timestamp
 from piccolo.columns.column_types import Timestamptz
+from piccolo.columns.column_types import Interval
 from piccolo.columns.column_types import UUID
 from piccolo.columns.column_types import Varchar
 from piccolo.columns.column_types import Array
@@ -80,6 +82,17 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
         help_text="Updating this value may produce invalid results. Use the form instead"
+    )
+    initially_enabled = Timestamptz(
+        default=None,
+        null=True,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        help_text="Do not edit this value by hand. It is used to determine the showing of news entries"
     )
     trading_allowed = Boolean(
         default=True,
@@ -641,6 +654,17 @@ class News(Table, tablename="news"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+    )
+    show_at = Interval(
+        default=timedelta(seconds=0),
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        help_text="How long into the game should this news be shown."
     )
     published = Boolean(
         default=False,

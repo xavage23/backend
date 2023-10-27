@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS games (
     game_number INTEGER NOT NULL DEFAULT 1, -- Game number, all games below this game number will have their transactions moved to this game upon joining
     name TEXT NOT NULL UNIQUE CHECK (name <> ''), -- Game description
     enabled TIMESTAMPTZ, -- The time the game was enabled, if null the game is disabled
+    initially_enabled TIMESTAMPTZ, -- Similar to enabled but does not get updated
     trading_allowed BOOLEAN NOT NULL DEFAULT FALSE,
     old_stocks_carry_over BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not stocks from previous games must carry over
     game_migration_method TEXT NOT NULL DEFAULT 'move_entire_transaction_history', -- The method of migrating stocks from previous games
@@ -72,6 +73,7 @@ CREATE TABLE IF NOT EXISTS news (
     affected_stock_id UUID REFERENCES stocks (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_id UUID NOT NULL REFERENCES games (id) ON UPDATE CASCADE ON DELETE CASCADE,
     published BOOLEAN NOT NULL DEFAULT FALSE,
+    show_at INTERVAL NOT NULL DEFAULT '0 seconds',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

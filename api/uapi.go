@@ -150,7 +150,8 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 					}
 
 					data = map[string]any{
-						"gameId": gameId,
+						"gameId":        gameId,
+						"gameEnabledAt": enabled,
 					}
 				} else {
 					return uapi.AuthData{}, uapi.HttpResponse{

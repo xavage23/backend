@@ -18,6 +18,7 @@ type Game struct {
 	ID                  string               `db:"id" json:"id" description:"The ID of the game"`
 	Code                string               `db:"code" json:"code" description:"The code of the game"`
 	Enabled             pgtype.Timestamptz   `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
+	InitiallyEnabled    pgtype.Timestamptz   `db:"initially_enabled" json:"initially_enabled" description:"When the game was first enabled"`
 	TradingAllowed      bool                 `db:"trading_allowed" json:"trading_enabled" description:"Whether trading is enabled"`
 	Name                string               `db:"name" json:"name" description:"The name of the game"`
 	CreatedAt           time.Time            `db:"created_at" json:"created_at" description:"The time the game was created"`

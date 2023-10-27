@@ -40,14 +40,15 @@ type StockList struct {
 }
 
 type News struct {
-	ID              string      `db:"id" json:"id" description:"The ID of the news"`
-	Title           string      `db:"title" json:"title" description:"The title of the news"`
-	Description     string      `db:"description" json:"description" description:"The description of the news"`
-	Published       bool        `db:"published" json:"published" description:"Whether the news has been published"`
-	AffectedStockID pgtype.UUID `db:"affected_stock_id" json:"affected_stock_id" description:"The ID of the stock affected by the news"`
-	AffectedStock   *Stock      `db:"-" json:"affected_stock" description:"The stock affected by the news, may not always be present"`
-	GameID          string      `db:"game_id" json:"game_id" description:"The ID of the game"`
-	CreatedAt       time.Time   `db:"created_at" json:"created_at" description:"The time the news was created"`
+	ID              string          `db:"id" json:"id" description:"The ID of the news"`
+	Title           string          `db:"title" json:"title" description:"The title of the news"`
+	Description     string          `db:"description" json:"description" description:"The description of the news"`
+	Published       bool            `db:"published" json:"published" description:"Whether the news has been published"`
+	AffectedStockID pgtype.UUID     `db:"affected_stock_id" json:"affected_stock_id" description:"The ID of the stock affected by the news"`
+	AffectedStock   *Stock          `db:"-" json:"affected_stock" description:"The stock affected by the news, may not always be present"`
+	GameID          string          `db:"game_id" json:"game_id" description:"The ID of the game"`
+	ShowAt          pgtype.Interval `db:"show_at" json:"show_at" description:"The time at which the news should be shown"`
+	CreatedAt       time.Time       `db:"created_at" json:"created_at" description:"The time the news was created"`
 }
 
 type Portfolio struct {

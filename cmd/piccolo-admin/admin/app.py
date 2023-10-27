@@ -210,6 +210,21 @@ class EnableDisableGame(BaseModel):
 
         # Update game
         if data.enable:
+            # Check if game is currently enabled
+            enabled = await Games.select(Games.enabled).where(
+                Games.id == game["id"]
+            ).first().run()
+
+            if enabled["enabled"] is not None:
+                raise ValueError("Game is already enabled")
+            
+            await Games.update(
+                initially_enabled=datetime.datetime.now(tz=datetime.timezone.utc)
+            ).where(
+                Games.id == game["id"],
+                Games.initially_enabled == None
+            ).run()
+
             await Games.update(
                 enabled=datetime.datetime.now(tz=datetime.timezone.utc)
             ).where(
@@ -252,7 +267,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    lifespan=lifespan
+    lifespan=lifespan,
     routes=[
         Mount(
             "/admin/",
