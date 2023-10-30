@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 	"xavagebb/db"
 	"xavagebb/state"
 	"xavagebb/transact"
@@ -20,6 +21,13 @@ var (
 	userColsArr = db.GetCols(types.User{})
 	userCols    = strings.Join(userColsArr, ", ")
 )
+
+type userData struct {
+	user             *types.User
+	initialBalance   int64
+	currentBalance   int64
+	partialPortfolio map[string]*types.Portfolio
+}
 
 func Docs() *docs.Doc {
 	return &docs.Doc{
@@ -69,8 +77,22 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
+	// Check cache
+	if cachedData, err := state.Redis.Get(d.Context, "game_leaderboard:"+gameId).Result(); err == nil && len(cachedData) > 0 {
+		return uapi.HttpResponse{
+			Data:    cachedData,
+			Headers: map[string]string{"X-Cached": "true"},
+		}
+	}
+
+	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
+
+	if err != nil {
+		state.Logger.Error("Failed to fetch current price index", zap.Error(err), zap.String("gameId", gameId))
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
 	var uts []types.UserTransaction
-	var err error
 
 	uts, err = transact.GetAllTransactions(d.Context, gameId)
 
@@ -79,11 +101,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	var leaderboardUsers = map[string]*types.Leaderboard{}
-
-	// Fill in user
+	var userMap = map[string]*userData{}
 	for i := range uts {
-		_, ok := leaderboardUsers[uts[i].UserID]
+		data, ok := userMap[uts[i].UserID]
 
 		if !ok {
 			row, err := state.Pool.Query(d.Context, "SELECT "+userCols+" FROM users WHERE id = $1", uts[i].UserID)
@@ -114,30 +134,77 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
-			leaderboardUsers[uts[i].UserID] = &types.Leaderboard{
-				User:           &user,
-				InitialBalance: initialBalance,
-				CurrentBalance: initialBalance,
+			userMap[uts[i].UserID] = &userData{
+				user:             &user,
+				initialBalance:   initialBalance,
+				currentBalance:   initialBalance,
+				partialPortfolio: map[string]*types.Portfolio{},
 			}
+
+			data = userMap[uts[i].UserID]
+		}
+
+		if _, ok := data.partialPortfolio[uts[i].StockID]; !ok {
+			stock, err := transact.GetStock(d.Context, uts[i].StockID, currentPriceIndex)
+
+			if err != nil {
+				if err != nil {
+					state.Logger.Error("Failed to get stock", zap.Error(err), zap.String("gameId", gameId), zap.String("stockId", uts[i].StockID))
+					return uapi.DefaultResponse(http.StatusInternalServerError)
+				}
+			}
+
+			userMap[uts[i].UserID].partialPortfolio[uts[i].StockID] = &types.Portfolio{
+				Stock:   stock,
+				Amounts: map[int64]types.PortfolioAmount{},
+			}
+		}
+
+		pa, ok := data.partialPortfolio[uts[i].StockID].Amounts[uts[i].SalePrice]
+
+		if !ok {
+			pa = types.PortfolioAmount{}
+			data.partialPortfolio[uts[i].StockID].Amounts[uts[i].SalePrice] = pa
 		}
 
 		switch uts[i].Action {
 		case "buy":
-			if uts[i].Amount < 0 {
-				leaderboardUsers[uts[i].UserID].ShortAmount += -1 * uts[i].Amount * uts[i].SalePrice
-			}
-
-			leaderboardUsers[uts[i].UserID].CurrentBalance -= uts[i].SalePrice * uts[i].Amount
+			pa.Amount += uts[i].Amount
+			data.currentBalance -= uts[i].SalePrice * uts[i].Amount
 		case "sell":
-			if uts[i].Amount < 0 {
-				leaderboardUsers[uts[i].UserID].ShortAmount -= -1 * uts[i].Amount * uts[i].SalePrice
-			}
+			pa.Amount -= uts[i].Amount
+			data.currentBalance += uts[i].SalePrice * uts[i].Amount
+		}
 
-			leaderboardUsers[uts[i].UserID].CurrentBalance += uts[i].SalePrice * uts[i].Amount
+		data.partialPortfolio[uts[i].StockID].Amounts[uts[i].SalePrice] = pa
+
+		// Update the user map
+		userMap[uts[i].UserID] = data
+	}
+
+	var leaderboardUsers = map[string]*types.Leaderboard{}
+
+	for k, v := range userMap {
+		// Use the partialPortfolio to calculate the current value of the portfolio if it was all sold at current price
+		var portfolioValue int64
+
+		for _, v := range v.partialPortfolio {
+			for _, amt := range v.Amounts {
+				portfolioValue += amt.Amount * v.Stock.CurrentPrice
+			}
+		}
+
+		leaderboardUsers[k] = &types.Leaderboard{
+			User:           v.user,
+			InitialBalance: v.initialBalance,
+			CurrentBalance: v.currentBalance,
+			PortfolioValue: portfolioValue,
 		}
 	}
 
 	return uapi.HttpResponse{
-		Json: leaderboardUsers,
+		Json:      leaderboardUsers,
+		CacheKey:  "game_leaderboard:" + gameId,
+		CacheTime: 1 * time.Minute,
 	}
 }

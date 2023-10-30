@@ -151,28 +151,20 @@ func FillStock(ctx context.Context, stock *types.Stock, currentPriceIndex int, i
 	return stock, nil
 }
 
-// Parses a list of user transactions to find the current balance of the user and the amount the user is shorting
-func GetUserCurrentBalance(initialBalance int64, uts []types.UserTransaction) (cb int64, sa int64) {
+// Parses a list of user transactions to find the current balance of the user
+func GetUserCurrentBalance(initialBalance int64, uts []types.UserTransaction) int64 {
 	var currentBalance = initialBalance
-	var shortAmount int64
+
 	for _, ut := range uts {
 		switch ut.Action {
 		case "buy":
-			if ut.Amount < 0 {
-				shortAmount += -1 * ut.Amount * ut.SalePrice
-			}
-
 			currentBalance -= ut.SalePrice * ut.Amount
 		case "sell":
-			if ut.Amount < 0 {
-				shortAmount -= -1 * ut.Amount * ut.SalePrice
-			}
-
 			currentBalance += ut.SalePrice * ut.Amount
 		}
 	}
 
-	return currentBalance, shortAmount
+	return currentBalance
 }
 
 // Given a stock ID and what price to use, return a Stock object

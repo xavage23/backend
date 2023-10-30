@@ -86,14 +86,13 @@ export interface GameUser {
   game: Game;
   initial_balance: number /* int64 */;
   current_balance: number /* int64 */;
-  short_amount: number /* int64 */;
   created_at: string /* RFC3339 */;
 }
 export interface Leaderboard {
   user?: User;
   initial_balance: number /* int64 */;
   current_balance: number /* int64 */;
-  short_amount: number /* int64 */;
+  portfolio_value: number /* int64 */;
 }
 
 //////////

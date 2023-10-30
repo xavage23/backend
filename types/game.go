@@ -53,7 +53,6 @@ type GameUser struct {
 	Game           Game      `db:"-" json:"game" description:"The game object"`
 	InitialBalance int64     `db:"initial_balance" json:"initial_balance" description:"The initial balance of the user in the game. Usually equal to the games initial balance unless the user is sanctioned/penalized"`
 	CurrentBalance int64     `db:"-" json:"current_balance" description:"The current balance of the user in the game calculated by processing all trades made by the user"`
-	ShortAmount    int64     `db:"-" json:"short_amount" description:"The amount of money the user has a short position for"`
 	CreatedAt      time.Time `db:"created_at" json:"created_at" description:"The time the game join was created"`
 }
 
@@ -61,5 +60,5 @@ type Leaderboard struct {
 	User           *User `json:"user" description:"The user object"`
 	InitialBalance int64 `json:"initial_balance" description:"The initial balance of the user in the game. Usually equal to the games initial balance unless the user is sanctioned/penalized"`
 	CurrentBalance int64 `json:"current_balance" description:"The current balance of the user in the game calculated by processing all trades made by the user"`
-	ShortAmount    int64 `json:"short_amount" description:"The amount of money the user has a short position for"`
+	PortfolioValue int64 `db:"-" json:"portfolio_value" description:"The value of the users portfolio calculated by multiplying the current price of each stock by the amount of that stock the user owns"`
 }
