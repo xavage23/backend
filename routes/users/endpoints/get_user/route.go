@@ -13,6 +13,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var (
@@ -47,7 +48,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	row, err := state.Pool.Query(d.Context, "SELECT "+userCols+" FROM users WHERE id = $1", userId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Error querying user", zap.Error(err), zap.String("userId", userId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -58,7 +59,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Error collecting user", zap.Error(err), zap.String("userId", userId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 

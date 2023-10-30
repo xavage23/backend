@@ -13,6 +13,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var (
@@ -56,7 +57,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	gameId, ok := d.Auth.Data["gameId"].(string)
 
 	if !ok {
-		state.Logger.Error("gameId not found in auth data", d.Auth.Data)
+		state.Logger.Error("gameId not found in auth data", zap.Any("data", d.Auth.Data))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -74,7 +75,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	uts, err = transact.GetAllTransactions(d.Context, gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("failed to get all transactions", zap.Error(err), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -88,7 +89,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			row, err := state.Pool.Query(d.Context, "SELECT "+userCols+" FROM users WHERE id = $1", uts[i].UserID)
 
 			if err != nil {
-				state.Logger.Error(err)
+				state.Logger.Error("failed to fetch user [db fetch]", zap.Error(err), zap.String("userId", uts[i].UserID))
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
@@ -99,7 +100,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			}
 
 			if err != nil {
-				state.Logger.Error(err)
+				state.Logger.Error("failed to fetch user [collect]", zap.Error(err), zap.String("userId", uts[i].UserID))
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
@@ -109,7 +110,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 			err = state.Pool.QueryRow(d.Context, "SELECT initial_balance FROM game_users WHERE user_id = $1 AND game_id = $2", uts[i].UserID, gameId).Scan(&initialBalance)
 
 			if err != nil {
-				state.Logger.Error(err)
+				state.Logger.Error("failed to fetch initial balance", zap.Error(err), zap.String("userId", uts[i].UserID), zap.String("gameId", gameId))
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 

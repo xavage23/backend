@@ -21,7 +21,7 @@ import (
 var (
 	Pool      *pgxpool.Pool
 	Redis     *redis.Client
-	Logger    *zap.SugaredLogger
+	Logger    *zap.Logger
 	Context   = context.Background()
 	Validator = validator.New()
 

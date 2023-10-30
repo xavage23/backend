@@ -4,7 +4,6 @@ import (
 	"admintool-cli/common"
 	"fmt"
 	"strings"
-	"xavagebb/state"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/infinitybotlist/eureka/crypto"
@@ -61,7 +60,7 @@ func CreateUser(progname string, args []string) {
 	}
 
 	var id string
-	err = pool.QueryRow(state.Context, "INSERT INTO users (username, password, token) VALUES ($1, $2, $3, $4) RETURNING id", name, argon2hash, token).Scan(&id)
+	err = pool.QueryRow(common.Ctx, "INSERT INTO users (username, password, token) VALUES ($1, $2, $3, $4) RETURNING id", name, argon2hash, token).Scan(&id)
 
 	if err != nil {
 		common.Fatal(err)

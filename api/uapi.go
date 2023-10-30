@@ -13,6 +13,7 @@ import (
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 )
 
@@ -20,9 +21,9 @@ const (
 	TargetTypeUser = "user"
 )
 
-type ErrorStructGen struct{}
+type DefaultResponder struct{}
 
-func (e ErrorStructGen) New(err string, ctx map[string]string) any {
+func (e DefaultResponder) New(err string, ctx map[string]string) any {
 	return types.ApiError{
 		Message: err,
 		Context: ctx,
@@ -61,12 +62,12 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 			err := state.Pool.QueryRow(state.Context, "SELECT id, enabled FROM users WHERE token = $1", authHeader).Scan(&id, &enabled)
 
 			if err != nil {
-				state.Logger.Error(err)
+				state.Logger.Error("Failed to fetch user: ", zap.Error(err))
 				continue
 			}
 
 			if !id.Valid {
-				state.Logger.Error("Invalid user ID: ", id.String)
+				state.Logger.Error("Invalid user ID", zap.Any("id", id))
 				continue
 			}
 
@@ -93,6 +94,7 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 					}
 
 					if err != nil {
+						state.Logger.Error("Failed to fetch game user ID", zap.Error(err), zap.String("user_id", id.String), zap.String("game_user_id", req.Header.Get("X-GameUser-ID")))
 						return uapi.AuthData{}, uapi.HttpResponse{
 							Status: http.StatusForbidden,
 							Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
@@ -173,7 +175,7 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 
 		// Now handle the URLVar
 		if auth.URLVar != "" {
-			state.Logger.Info("URLVar: ", auth.URLVar)
+			state.Logger.Info("Checking URL variable against user ID from auth token", zap.String("URLVar", auth.URLVar))
 			gotUserId := chi.URLParam(req, auth.URLVar)
 			if !slices.Contains(urlIds, gotUserId) {
 				authData = uapi.AuthData{} // Remove auth data
@@ -206,15 +208,14 @@ func Setup() {
 		Redis:   state.Redis,
 		Context: state.Context,
 		Constants: &uapi.UAPIConstants{
-			NotFound:         constants.NotFound,
-			NotFoundPage:     constants.NotFoundPage,
-			BadRequest:       constants.BadRequest,
-			Forbidden:        constants.Forbidden,
-			Unauthorized:     constants.Unauthorized,
-			InternalError:    constants.InternalError,
-			MethodNotAllowed: constants.MethodNotAllowed,
-			BodyRequired:     constants.BodyRequired,
+			ResourceNotFound:    constants.ResourceNotFound,
+			BadRequest:          constants.BadRequest,
+			Forbidden:           constants.Forbidden,
+			Unauthorized:        constants.Unauthorized,
+			InternalServerError: constants.InternalServerError,
+			MethodNotAllowed:    constants.MethodNotAllowed,
+			BodyRequired:        constants.BodyRequired,
 		},
-		UAPIErrorType: ErrorStructGen{},
+		DefaultResponder: DefaultResponder{},
 	})
 }

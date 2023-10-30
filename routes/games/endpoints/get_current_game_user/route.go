@@ -13,6 +13,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var (
@@ -51,7 +52,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	row, err := state.Pool.Query(d.Context, "SELECT "+gameUserCols+" FROM game_users WHERE id = $1", r.Header.Get("X-GameUser-ID"))
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch game user [db fetch]", zap.Error(err), zap.String("game_user_id", r.Header.Get("X-GameUser-ID")))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -62,14 +63,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch game user [collect]", zap.Error(err), zap.String("game_user_id", r.Header.Get("X-GameUser-ID")))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
 	gameRow, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1", gu.GameID)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch game [db fetch]", zap.Error(err), zap.String("game_id", gu.GameID))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -80,7 +81,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch game [collect]", zap.Error(err), zap.String("game_id", gu.GameID))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -89,7 +90,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	uts, err := transact.GetUserTransactions(d.Context, gu.UserID, gu.GameID)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch user transactions", zap.Error(err), zap.String("game_user_id", r.Header.Get("X-GameUser-ID")), zap.String("user_id", gu.UserID), zap.String("game_id", gu.GameID))
 		return uapi.HttpResponse{
 			Status: http.StatusInternalServerError,
 			Json:   types.ApiError{Message: "An error occurred while fetching user transactions: " + err.Error()},

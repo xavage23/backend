@@ -13,6 +13,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var mut = mapofmu.New[string]()
@@ -47,7 +48,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	gameId, ok := d.Auth.Data["gameId"].(string)
 
 	if !ok {
-		state.Logger.Error("gameId not found in auth data", d.Auth.Data)
+		state.Logger.Error("gameId not found in auth data", zap.Any("data", d.Auth.Data))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -74,7 +75,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch game trading allowed status", zap.Error(err), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -116,14 +117,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch current price index", zap.Error(err), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
 	uts, err = transact.GetUserTransactions(d.Context, userId, gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to get user transactions", zap.Error(err), zap.String("gameId", gameId), zap.String("userId", userId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -140,7 +141,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch stock", zap.Error(err), zap.String("gameId", gameId), zap.String("stockId", req.StockID))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -168,7 +169,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch game user", zap.Error(err), zap.String("gameUserId", r.Header.Get("X-GameUser-ID")))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -197,7 +198,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		_, err = state.Pool.Exec(d.Context, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) VALUES ($1, $2, $2, $3, $4, $5, $6, $7)", userId, gameId, req.StockID, currentPriceIndex, req.Amount, req.Action, stock.Prices[pIndex])
 
 		if err != nil {
-			state.Logger.Error(err)
+			state.Logger.Error("Failed to enact final buy", zap.Error(err), zap.String("gameId", gameId), zap.String("userId", userId))
 			return uapi.DefaultResponse(http.StatusInternalServerError)
 		}
 	case "sell":
@@ -217,14 +218,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		_, err = state.Pool.Exec(d.Context, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) VALUES ($1, $2, $2, $3, $4, $5, $6, $7)", userId, gameId, req.StockID, currentPriceIndex, req.Amount, req.Action, stock.Prices[pIndex])
 
 		if err != nil {
-			state.Logger.Error(err)
+			state.Logger.Error("Failed to enact final sell", zap.Error(err), zap.String("gameId", gameId), zap.String("userId", userId))
 			return uapi.DefaultResponse(http.StatusInternalServerError)
 		}
 	default:
 		return uapi.HttpResponse{
 			Status: http.StatusNotImplemented,
 			Json: types.ApiError{
-				Message: "Action must be either buy or sell",
+				Message: "Action must be either buy or sell. To short, use a negative amount using the same buy/sell actions",
 			},
 		}
 	}

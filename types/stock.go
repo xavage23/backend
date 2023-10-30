@@ -30,8 +30,14 @@ type Stock struct {
 	KnownPrices  []int64           `db:"-" json:"known_prices" description:"The known prices of the stock in cents"`
 	PriorPrices  []PriorPricePoint `db:"-" json:"prior_prices" description:"The prices of the stock in cents"`
 	CreatedAt    time.Time         `db:"created_at" json:"created_at" description:"The time the stock was created"`
-	Ratios       []StockRatio      `db:"-" json:"ratios,omitempty" description:"The ratios of the stock, may not always be present"`
+	KnownRatios  []KnownRatio      `db:"-" json:"known_ratios,omitempty" description:"The known ratios of the stock, may not always be present"`
 	Includes     []string          `db:"-" json:"includes,omitempty" description:"The included data present in this stock"`
+}
+
+type KnownRatio struct {
+	Ratios     []StockRatio `json:"ratios" description:"The ratios of the stock"`
+	PriceIndex int          `json:"price_index" description:"The price index/snapshot of the stock at the time of the transaction"`
+	Game       Game         `json:"game" description:"The game object"`
 }
 
 type StockList struct {

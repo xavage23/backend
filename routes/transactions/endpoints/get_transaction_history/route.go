@@ -13,6 +13,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var (
@@ -73,7 +74,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	gameId, ok := d.Auth.Data["gameId"].(string)
 
 	if !ok {
-		state.Logger.Error("gameId not found in auth data", d.Auth.Data)
+		state.Logger.Error("gameId not found in auth data", zap.Any("data", d.Auth.Data))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -91,7 +92,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch current price index", zap.Error(err), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -102,7 +103,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to get user transactions", zap.Error(err), zap.String("gameId", gameId), zap.String("userId", userId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -118,7 +119,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				row, err := state.Pool.Query(d.Context, "SELECT "+userCols+" FROM users WHERE id = $1", uts[i].UserID)
 
 				if err != nil {
-					state.Logger.Error(err)
+					state.Logger.Error("Failed to fetch user", zap.Error(err), zap.String("userId", uts[i].UserID))
 					return uapi.DefaultResponse(http.StatusInternalServerError)
 				}
 
@@ -129,7 +130,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				}
 
 				if err != nil {
-					state.Logger.Error(err)
+					state.Logger.Error("Failed to collect user", zap.Error(err), zap.String("userId", uts[i].UserID))
 					return uapi.DefaultResponse(http.StatusInternalServerError)
 				}
 
@@ -144,7 +145,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				row, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1", uts[i].OriginGameID)
 
 				if err != nil {
-					state.Logger.Error(err)
+					state.Logger.Error("Failed to fetch game", zap.Error(err), zap.String("gameId", uts[i].OriginGameID))
 					return uapi.DefaultResponse(http.StatusInternalServerError)
 				}
 
@@ -155,7 +156,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 				}
 
 				if err != nil {
-					state.Logger.Error(err)
+					state.Logger.Error("Failed to collect game", zap.Error(err), zap.String("gameId", uts[i].OriginGameID))
 					return uapi.DefaultResponse(http.StatusInternalServerError)
 				}
 
@@ -166,14 +167,25 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		_, ok = stocks[uts[i].StockID]
 
 		if !ok {
-			stock, err := transact.GetFullyParsedStock(d.Context, uts[i].StockID, currentPriceIndex)
+			stock, err := transact.GetStock(d.Context, uts[i].StockID, currentPriceIndex)
 
 			if errors.Is(err, pgx.ErrNoRows) {
 				continue
 			}
 
 			if err != nil {
-				state.Logger.Error(err)
+				state.Logger.Error("Failed to get stock", zap.Error(err), zap.String("stockId", uts[i].StockID))
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+
+			stock, err = transact.FillStock(d.Context, stock, currentPriceIndex, []string{"prior_prices"})
+
+			if errors.Is(err, pgx.ErrNoRows) {
+				continue
+			}
+
+			if err != nil {
+				state.Logger.Error("Failed to fill stock", zap.Error(err), zap.String("stockId", uts[i].StockID))
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 

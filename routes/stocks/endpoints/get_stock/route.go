@@ -14,15 +14,12 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
+	"go.uber.org/zap"
 )
 
 var (
 	stocksColsArr = db.GetCols(types.Stock{})
 	stocksCols    = strings.Join(stocksColsArr, ", ")
-
-	stockRatioColsArr = db.GetCols(types.StockRatio{})
-	stockRatioCols    = strings.Join(stockRatioColsArr, ", ")
 )
 
 func Docs() *docs.Doc {
@@ -62,7 +59,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	gameId, ok := d.Auth.Data["gameId"].(string)
 
 	if !ok {
-		state.Logger.Error("gameId not found in auth data", d.Auth.Data)
+		state.Logger.Error("gameId not found in auth data", zap.Any("data", d.Auth.Data))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -88,7 +85,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Error fetching stocks [db query]", zap.Error(err), zap.String("stockId", stockId), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -104,81 +101,25 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Error fetching stocks [collect one row]", zap.Error(err), zap.String("stockId", stockId), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
-	}
-
-	if stock.GameID != gameId {
-		return uapi.HttpResponse{
-			Status: http.StatusBadRequest,
-			Json: types.ApiError{
-				Message: "This stock is not available in this game",
-			},
-		}
 	}
 
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Error fetching current price index", zap.Error(err), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
 	parsedStock := transact.ParseStock(d.Context, &stock, currentPriceIndex)
 
-	pp, err := transact.GetPriorStockPrices(d.Context, gameId, parsedStock.Ticker)
+	parsedStock, err = transact.FillStock(d.Context, parsedStock, currentPriceIndex, []string{"prior_prices", "ratios"})
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Error parsing stock", zap.Error(err), zap.String("gameId", gameId), zap.String("stockId", stockId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
-
-	parsedStock.PriorPrices = pp
-	parsedStock.Includes = []string{"prior_prices", "ratios"}
-
-	ratioRows, err := state.Pool.Query(d.Context, "SELECT "+stockRatioCols+" FROM stock_ratios WHERE stock_id = $1 AND price_index = $2", parsedStock.ID, currentPriceIndex)
-
-	if err != nil {
-		state.Logger.Error(err)
-		return uapi.DefaultResponse(http.StatusInternalServerError)
-	}
-
-	ratios, err := pgx.CollectRows(ratioRows, pgx.RowToStructByName[types.StockRatio])
-
-	if errors.Is(err, pgx.ErrNoRows) {
-		ratios = []types.StockRatio{}
-
-		// Get largest price index in stock_ratios for this stock ID
-		var maxPriceIndex pgtype.Int8
-
-		err := state.Pool.QueryRow(d.Context, "SELECT MAX(price_index) FROM stock_ratios WHERE stock_id = $1", parsedStock.ID).Scan(&maxPriceIndex)
-
-		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-			state.Logger.Error(err)
-			return uapi.DefaultResponse(http.StatusInternalServerError)
-		}
-
-		if maxPriceIndex.Valid {
-			ratioRows, err := state.Pool.Query(d.Context, "SELECT "+stockRatioCols+" FROM stock_ratios WHERE stock_id = $1 AND price_index = $2", parsedStock.ID, maxPriceIndex.Int64)
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			ratios, err = pgx.CollectRows(ratioRows, pgx.RowToStructByName[types.StockRatio])
-
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-		}
-	} else if err != nil {
-		state.Logger.Error(err)
-		return uapi.DefaultResponse(http.StatusInternalServerError)
-	}
-
-	parsedStock.Ratios = ratios
 
 	return uapi.HttpResponse{
 		Json: parsedStock,

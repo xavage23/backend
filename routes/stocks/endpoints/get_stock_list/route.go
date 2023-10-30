@@ -14,6 +14,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var (
@@ -57,7 +58,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	gameId, ok := d.Auth.Data["gameId"].(string)
 
 	if !ok {
-		state.Logger.Error("gameId not found in auth data", d.Auth.Data)
+		state.Logger.Error("gameId not found in auth data", zap.Any("data", d.Auth.Data))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -69,12 +70,16 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusBadRequest)
 	}
 
-	withPriorPrices := r.URL.Query().Get("with_prior_prices")
+	includes := []string{}
+
+	if r.URL.Query().Get("with_prior_prices") == "true" {
+		includes = append(includes, "prior_prices")
+	}
 
 	rows, err := state.Pool.Query(d.Context, "SELECT "+stocksCols+" FROM stocks WHERE game_id = $1 ORDER BY created_at DESC", gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch stocks [db fetch]", zap.Error(err), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -87,20 +92,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch stock [collect]", zap.Error(err), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
-	}
-
-	var included []string = []string{}
-
-	if withPriorPrices == "true" {
-		included = append(included, "prior_prices")
 	}
 
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch current price index", zap.Error(err), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -108,16 +107,11 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	for i := range stocks {
 		parsedStock := transact.ParseStock(d.Context, &stocks[i], currentPriceIndex)
 
-		if withPriorPrices == "true" {
-			pp, err := transact.GetPriorStockPrices(d.Context, gameId, parsedStock.Ticker)
+		parsedStock, err = transact.FillStock(d.Context, parsedStock, currentPriceIndex, includes)
 
-			if err != nil {
-				state.Logger.Error(err)
-				return uapi.DefaultResponse(http.StatusInternalServerError)
-			}
-
-			parsedStock.PriorPrices = pp
-			parsedStock.Includes = included
+		if err != nil {
+			state.Logger.Error("Failed to fill stock", zap.Error(err), zap.String("gameId", gameId))
+			return uapi.DefaultResponse(http.StatusInternalServerError)
 		}
 
 		stockList = append(stockList, parsedStock)

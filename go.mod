@@ -6,15 +6,15 @@ require (
 	github.com/bwmarrin/discordgo v0.27.2-0.20230922130345-1f0b57f11024
 	github.com/getkin/kin-openapi v0.120.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.10
-	github.com/google/uuid v1.3.1
-	github.com/infinitybotlist/eureka v0.0.0-20231014041954-1221f31fd729
+	github.com/google/uuid v1.4.0
+	github.com/infinitybotlist/eureka v0.3.0
 	github.com/mileusna/useragent v1.3.4
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	github.com/alexedwards/argon2id v0.0.0-20230305115115-4b3c3280a736
+	github.com/alexedwards/argon2id v1.0.0
 	github.com/cloudflare/tableflip v1.2.3
 	github.com/getsentry/sentry-go v0.25.0
 	github.com/stripe/stripe-go/v75 v75.10.0

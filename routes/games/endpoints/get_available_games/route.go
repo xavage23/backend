@@ -13,6 +13,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var (
@@ -41,7 +42,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	row, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE publicly_listed = true")
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch available games [db fetch]", zap.Error(err))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -54,7 +55,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch available games [collect]", zap.Error(err))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -69,6 +70,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 		if err != nil {
 			if !errors.Is(err, pgx.ErrNoRows) {
+				state.Logger.Error("Failed to fetch selected game [queryrow]", zap.Error(err))
 				return uapi.HttpResponse{
 					Status: http.StatusForbidden,
 					Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},

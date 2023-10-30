@@ -13,6 +13,7 @@ import (
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var (
@@ -54,7 +55,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	row, err := state.Pool.Query(d.Context, "SELECT "+gameCols+" FROM games WHERE id = $1", gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch game [db fetch]", zap.Error(err), zap.String("game_id", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -65,7 +66,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch game [collect]", zap.Error(err), zap.String("game_id", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 

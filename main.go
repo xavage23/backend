@@ -22,6 +22,7 @@ import (
 	"github.com/cloudflare/tableflip"
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
+	"go.uber.org/zap"
 
 	"github.com/infinitybotlist/eureka/zapchi"
 
@@ -116,7 +117,7 @@ func main() {
 		name, desc := router.Tag()
 		if name != "" {
 			docs.AddTag(name, desc)
-			uapi.CurrentTag = name
+			uapi.State.SetCurrentTag(name)
 		} else {
 			panic("Router tag name cannot be empty")
 		}
@@ -148,7 +149,7 @@ func main() {
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(constants.NotFoundPage))
+		w.Write([]byte(constants.EndpointNotFound))
 	})
 
 	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
@@ -174,7 +175,7 @@ func main() {
 		ln, err := upg.Listen("tcp", state.Config.Meta.Port)
 
 		if err != nil {
-			state.Logger.Fatal(err)
+			state.Logger.Fatal("Error binding to socket", zap.Error(err))
 		}
 
 		defer ln.Close()
@@ -187,12 +188,12 @@ func main() {
 		go func() {
 			err := server.Serve(ln)
 			if err != http.ErrServerClosed {
-				state.Logger.Error(err)
+				state.Logger.Error("Server failed due to unexpected error", zap.Error(err))
 			}
 		}()
 
 		if err := upg.Ready(); err != nil {
-			state.Logger.Fatal(err)
+			state.Logger.Fatal("Error calling upg.Ready", zap.Error(err))
 		}
 
 		<-upg.Exit()
@@ -202,7 +203,7 @@ func main() {
 		err = http.ListenAndServe(state.Config.Meta.Port, r)
 
 		if err != nil {
-			state.Logger.Fatal(err)
+			state.Logger.Fatal("Error binding to socket", zap.Error(err))
 		}
 	}
 }

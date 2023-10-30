@@ -17,6 +17,7 @@ import (
 	"github.com/infinitybotlist/eureka/uapi/ratelimit"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 )
 
@@ -50,7 +51,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}.Limit(d.Context, r)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to ratelimit", zap.Error(err), zap.String("bucket", "join"))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -97,11 +98,10 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch selected game", zap.Error(err), zap.String("game_code", req.GameCode))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	state.Logger.Info(enabled.Time, time.Now())
 	if !enabled.Valid || enabled.Time.After(time.Now()) {
 		return uapi.HttpResponse{
 			Status: http.StatusForbidden,
@@ -124,6 +124,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
+		state.Logger.Error("Failed to fetch selected game", zap.Error(err), zap.String("game_code", req.GameCode))
 		return uapi.HttpResponse{
 			Status: http.StatusForbidden,
 			Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
@@ -152,14 +153,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if !errors.Is(err, pgx.ErrNoRows) {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch selected game", zap.Error(err), zap.String("game_code", req.GameCode))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
 	tx, err := state.Pool.Begin(d.Context)
 
 	if err != nil {
-		state.Logger.Error("tx create error:", err)
+		state.Logger.Error("Failed to start transaction", zap.Error(err))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -169,7 +170,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	err = migrateUserTransactions(d.Context, tx, d.Auth.ID, gameId, oldStocksCarryOver, gameMigrationMethod)
 
 	if err != nil {
-		state.Logger.Error("migrate error:", err)
+		state.Logger.Error("Failed to migrate user transactions", zap.Error(err), zap.String("game_code", req.GameCode), zap.String("user_id", d.Auth.ID))
 		return uapi.HttpResponse{
 			Status: http.StatusInternalServerError,
 			Json:   types.ApiError{Message: "Failed to migrate user transactions: " + err.Error()},
@@ -180,14 +181,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	err = tx.QueryRow(d.Context, "INSERT INTO game_users (user_id, game_id, initial_balance) VALUES ($1, $2, $3) RETURNING id", d.Auth.ID, gameId, initialBalance).Scan(&gameUserId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to create game join", zap.Error(err), zap.String("game_code", req.GameCode), zap.String("user_id", d.Auth.ID))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
 	err = tx.Commit(d.Context)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to commit transaction", zap.Error(err), zap.String("game_code", req.GameCode), zap.String("user_id", d.Auth.ID))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -305,7 +306,7 @@ func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, game
 				return fmt.Errorf("couldnt get uts %s", err)
 			}
 
-			state.Logger.Info("Got user transactions for game", oldGameId)
+			state.Logger.Info("Got user transactions for game", zap.String("gameId", oldGameId))
 
 			data := cgmData{
 				GameID:           oldGameId,
@@ -343,7 +344,7 @@ func migrateUserTransactions(ctx context.Context, tx pgx.Tx, userId string, game
 				for stockId, priceIndexMap := range stockMap {
 					for priceIndex, portfolio := range priceIndexMap {
 						// Create condensed user transactions
-						state.Logger.Infof("Creating condensed transaction for game %s, stock %s, price index %d, sale price %d, amount %d", oldGameId, stockId, priceIndex, salePrice, portfolio.Amount)
+						state.Logger.Info("Creating condensed transaction for game", zap.String("gameId", oldGameId), zap.String("stockId", stockId), zap.Int("priceIndex", priceIndex), zap.Int64("salePrice", salePrice), zap.Int64("amount", portfolio.Amount))
 
 						if portfolio.Amount > 0 {
 							_, err = tx.Exec(ctx, "INSERT INTO user_transactions (user_id, game_id, origin_game_id, stock_id, price_index, amount, action, sale_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", userId, gameId, oldGameId, stockId, priceIndex, portfolio.Amount, "buy", salePrice)

@@ -14,6 +14,7 @@ import (
 	"github.com/infinitybotlist/eureka/uapi"
 	"github.com/infinitybotlist/eureka/uapi/ratelimit"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var (
@@ -37,7 +38,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}.Limit(d.Context, r)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to ratelimit", zap.Error(err), zap.String("bucket", "login"))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -85,7 +86,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	}
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Error fetching user id", zap.Error(err), zap.String("username", req.Username))
 		return uapi.HttpResponse{
 			Json: types.ApiError{
 				Message: "An error occurred while fetching the user id",
@@ -97,7 +98,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	match, err := argon2id.ComparePasswordAndHash(req.Password, hashedPw)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Error validating user id", zap.Error(err), zap.String("username", req.Username))
 		return uapi.HttpResponse{
 			Json: types.ApiError{
 				Message: "An error occurred validating your identity",

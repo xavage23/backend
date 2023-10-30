@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	docs "github.com/infinitybotlist/eureka/doclib"
 	"github.com/infinitybotlist/eureka/uapi"
+	"go.uber.org/zap"
 )
 
 func Docs() *docs.Doc {
@@ -47,7 +48,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	gameId, ok := d.Auth.Data["gameId"].(string)
 
 	if !ok {
-		state.Logger.Error("gameId not found in auth data", d.Auth.Data)
+		state.Logger.Error("gameId not found in auth data", zap.Any("data", d.Auth.Data))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -65,14 +66,14 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to fetch current price index", zap.Error(err), zap.String("gameId", gameId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
 	uts, err = transact.GetUserTransactions(d.Context, userId, gameId)
 
 	if err != nil {
-		state.Logger.Error(err)
+		state.Logger.Error("Failed to get user transactions", zap.Error(err), zap.String("gameId", gameId), zap.String("userId", userId))
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
@@ -82,10 +83,17 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		_, ok := portfolio[uts[i].StockID]
 
 		if !ok {
-			stock, err := transact.GetFullyParsedStock(d.Context, uts[i].StockID, currentPriceIndex)
+			stock, err := transact.GetStock(d.Context, uts[i].StockID, currentPriceIndex)
 
 			if err != nil {
-				state.Logger.Error(err)
+				state.Logger.Error("Failed to get stock", zap.Error(err), zap.String("gameId", gameId), zap.String("stockId", uts[i].StockID))
+				return uapi.DefaultResponse(http.StatusInternalServerError)
+			}
+
+			stock, err = transact.FillStock(d.Context, stock, currentPriceIndex, []string{"prior_prices"})
+
+			if err != nil {
+				state.Logger.Error("Failed to fill stock", zap.Error(err), zap.String("gameId", gameId), zap.String("stockId", uts[i].StockID))
 				return uapi.DefaultResponse(http.StatusInternalServerError)
 			}
 
