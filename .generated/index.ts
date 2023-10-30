@@ -55,6 +55,7 @@ export interface Game {
   id: string;
   code: string;
   enabled: string | null /* RFC3339, nullable */;
+  initially_enabled: string | null /* RFC3339, nullable */;
   trading_enabled: boolean;
   name: string;
   created_at: string /* RFC3339 */;
@@ -119,8 +120,18 @@ export interface Stock {
   known_prices: number /* int64 */[];
   prior_prices: PriorPricePoint[];
   created_at: string /* RFC3339 */;
-  ratios?: StockRatio[];
+  known_ratios: KnownRatios[];
+  prior_ratios: PriorRatios[];
   includes?: string[];
+}
+export interface KnownRatios {
+  ratios: StockRatio[];
+  price_index: number /* int */;
+}
+export interface PriorRatios {
+  ratios: StockRatio[];
+  price_index: number /* int */;
+  game: Game;
 }
 export interface StockList {
   stocks: (Stock | undefined)[];
@@ -134,6 +145,7 @@ export interface News {
   affected_stock_id: string /* uuid */;
   affected_stock?: Stock;
   game_id: string;
+  show_at: any /* pgtype.Interval */;
   created_at: string /* RFC3339 */;
 }
 export interface Portfolio {
