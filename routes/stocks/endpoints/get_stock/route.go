@@ -114,7 +114,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	parsedStock := transact.ParseStock(d.Context, &stock, currentPriceIndex)
 
-	parsedStock, err = transact.FillStock(d.Context, parsedStock, currentPriceIndex, []string{"prior_prices", "ratios"})
+	parsedStock, err = transact.FillStock(d.Context, parsedStock, currentPriceIndex, []string{"prior_prices", "known_ratios", "prior_ratios"})
 
 	if err != nil {
 		state.Logger.Error("Error parsing stock", zap.Error(err), zap.String("gameId", gameId), zap.String("stockId", stockId))
