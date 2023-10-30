@@ -83,17 +83,6 @@ class Games(Table, tablename="games"):
         secret=False,
         help_text="Updating this value may produce invalid results. Use the form instead"
     )
-    initially_enabled = Timestamptz(
-        default=None,
-        null=True,
-        primary_key=False,
-        unique=False,
-        index=False,
-        index_method=IndexMethod.btree,
-        db_column_name=None,
-        secret=False,
-        help_text="Do not edit this value by hand. It is used to determine the showing of news entries"
-    )
     trading_allowed = Boolean(
         default=True,
         null=False,

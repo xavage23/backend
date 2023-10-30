@@ -219,13 +219,6 @@ class EnableDisableGame(BaseModel):
                 raise ValueError("Game is already enabled")
             
             await Games.update(
-                initially_enabled=datetime.datetime.now(tz=datetime.timezone.utc)
-            ).where(
-                Games.id == game["id"],
-                Games.initially_enabled == None
-            ).run()
-
-            await Games.update(
                 enabled=datetime.datetime.now(tz=datetime.timezone.utc)
             ).where(
                 Games.id == game["id"]

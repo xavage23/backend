@@ -205,6 +205,6 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	return uapi.HttpResponse{
 		Json:      leaderboardUsers,
 		CacheKey:  "game_leaderboard:" + gameId,
-		CacheTime: 1 * time.Minute,
+		CacheTime: 10 * time.Second,
 	}
 }
