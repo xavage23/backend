@@ -89,6 +89,23 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	var uts []types.UserTransaction
 	var err error
 
+	var transactionHistoryAllowed bool
+	row := state.Pool.QueryRow(d.Context, "SELECT transaction_history_allowed FROM games WHERE id = $1", gameId)
+
+	err = row.Scan(&transactionHistoryAllowed)
+
+	if err != nil {
+		state.Logger.Error("Failed to fetch game transactionHistoryAllowed state", zap.Error(err), zap.String("gameId", gameId))
+		return uapi.DefaultResponse(http.StatusInternalServerError)
+	}
+
+	if !transactionHistoryAllowed {
+		return uapi.HttpResponse{
+			Status: http.StatusForbidden,
+			Json:   types.ApiError{Message: "Viewing Transaction history for this game is not currently allowed"},
+		}
+	}
+
 	currentPriceIndex, err := transact.GetCurrentPriceIndex(d.Context, gameId)
 
 	if err != nil {

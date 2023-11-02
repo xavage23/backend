@@ -21,6 +21,7 @@ from piccolo.columns.defaults.uuid import UUID4
 from piccolo.columns.indexes import IndexMethod
 from piccolo.table import Table
 from piccolo.columns.readable import Readable
+from piccolo_api.crud.hooks import Hook, HookType
 
 class Games(Table, tablename="games"):
     @classmethod
@@ -81,10 +82,19 @@ class Games(Table, tablename="games"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
-        help_text="Updating this value may produce invalid results. Use the form instead"
     )
     trading_allowed = Boolean(
         default=True,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
+    transaction_history_allowed = Boolean(
+        default=False,
         null=False,
         primary_key=False,
         unique=False,
@@ -102,7 +112,6 @@ class Games(Table, tablename="games"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
-        help_text="Whether or not all old stocks from prior games must also be present in this game"
     )
     game_migration_method = Text(
         default=GameMigrationMethod.condensed_migration,

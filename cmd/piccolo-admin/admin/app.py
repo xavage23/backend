@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from admin import ext_config
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import redis
@@ -185,7 +186,7 @@ class ClearUserTransactionsOfUser(BaseModel):
             
 class EnableDisableGame(BaseModel):
     game_id_or_code: str
-    enable: bool
+    enabled: bool
 
     @staticmethod
     async def action(request: Request, data: "EnableDisableGame"):
@@ -208,32 +209,27 @@ class EnableDisableGame(BaseModel):
         if not game:
             raise ValueError("Game ID or code does not exist")
 
-        # Update game
-        if data.enable:
-            # Check if game is currently enabled
-            enabled = await Games.select(Games.enabled).where(
-                Games.id == game["id"]
-            ).first().run()
+        # Game enabled
+        if data.enabled is not None:
+            if data.enabled:                
+                await Games.update(
+                    enabled=datetime.datetime.now(tz=datetime.timezone.utc)
+                ).where(
+                    Games.id == game["id"]
+                ).run()
+                
+                return "Game enabled."
+            else:
+                await Games.update(
+                    enabled=None
+                ).where(
+                    Games.id == game["id"]
+                ).run()
 
-            if enabled["enabled"] is not None:
-                raise ValueError("Game is already enabled")
-            
-            await Games.update(
-                enabled=datetime.datetime.now(tz=datetime.timezone.utc)
-            ).where(
-                Games.id == game["id"]
-            ).run()
-            
-            return "Game enabled."
+                return "Game disabled."
         else:
-            await Games.update(
-                enabled=None
-            ).where(
-                Games.id == game["id"]
-            ).run()
-
-            return "Game disabled."
-
+            raise ValueError("Enabled cannot be null")
+                        
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -258,14 +254,13 @@ async def lifespan(app: FastAPI):
         exit(1)
 
 
-
 app = FastAPI(
     lifespan=lifespan,
     routes=[
         Mount(
             "/admin/",
             create_admin(
-                tables=[t for t in APP_CONFIG.table_classes if t._meta.tablename not in ("sessions", "migration", "piccolo_user")],
+                tables=[*[ext_config.game_config], *[t for t in APP_CONFIG.table_classes if t._meta.tablename not in ("sessions", "migration", "piccolo_user", "games")]],
                 forms=[
                     FormConfig(
                         name="New User",
@@ -309,10 +304,10 @@ prior_stock_prices:{game_id}:{ticker} to clear the prior stock prices cache for 
                         description="WORK_IN_PROGRESS! Clears all transactions of a user in a game. Can be used for anti-spam purposes et al. Before committing, be sure to keep pretend_mode enabled to avoid irreversible data loss."
                     ),
                     FormConfig(
-                        name="Enable Or Disable Game",
+                        name="Enable/Disable Game",
                         pydantic_model=EnableDisableGame,
                         endpoint=EnableDisableGame.action,
-                        description="Enables or disables a game. Disabling a game will prevent users from making transactions in that game."
+                        description="Allows enabling/disabling a game. Disabling a game will prevent users from making transactions in that game."
                     ),
                 ],
                 # Required when running under HTTPS:
