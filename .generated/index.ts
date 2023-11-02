@@ -55,8 +55,8 @@ export interface Game {
   id: string;
   code: string;
   enabled: string | null /* RFC3339, nullable */;
-  initially_enabled: string | null /* RFC3339, nullable */;
   trading_enabled: boolean;
+  transaction_history_allowed: boolean;
   name: string;
   created_at: string /* RFC3339 */;
   price_times: string | null /* RFC3339, nullable */[];
