@@ -102,7 +102,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	if !transactionHistoryAllowed {
 		return uapi.HttpResponse{
 			Status: http.StatusForbidden,
-			Json:   types.ApiError{Message: "Viewing Transaction history for this game is not currently allowed"},
+			Json:   types.ApiError{Message: "Viewing transaction history for this game is not currently allowed"},
 		}
 	}
 
