@@ -20,6 +20,7 @@ type Game struct {
 	Enabled                   pgtype.Timestamptz   `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
 	TradingAllowed            bool                 `db:"trading_allowed" json:"trading_enabled" description:"Whether trading is enabled"`
 	TransactionHistoryAllowed bool                 `db:"transaction_history_allowed" json:"transaction_history_allowed" description:"Whether transaction history is allowed"`
+	PrivateTransactionHistory bool                 `db:"private_transaction_history" json:"private_transaction_history" description:"Whether transaction history is private/only view their own"`
 	Name                      string               `db:"name" json:"name" description:"The name of the game"`
 	CreatedAt                 time.Time            `db:"created_at" json:"created_at" description:"The time the game was created"`
 	PriceTimes                []pgtype.Timestamptz `db:"price_times" json:"price_times" description:"The times at which the price of the game was recorded"`

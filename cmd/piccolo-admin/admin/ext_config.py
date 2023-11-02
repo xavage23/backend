@@ -8,7 +8,7 @@ async def save_game_hook(row: Games):
         row.enabled = datetime.datetime.now(tz=datetime.timezone.utc)
     return row.enabled
 
-async def patch_game_hook(_, values: dict):
+async def patch_game_hook(row_id, values: dict):
     if values.get("enabled"):
         values["enabled"] = datetime.datetime.now(tz=datetime.timezone.utc)
 

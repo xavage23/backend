@@ -304,7 +304,7 @@ prior_stock_prices:{game_id}:{ticker} to clear the prior stock prices cache for 
                         description="WORK_IN_PROGRESS! Clears all transactions of a user in a game. Can be used for anti-spam purposes et al. Before committing, be sure to keep pretend_mode enabled to avoid irreversible data loss."
                     ),
                     FormConfig(
-                        name="Enable/Disable Game",
+                        name="Enable or Disable Game",
                         pydantic_model=EnableDisableGame,
                         endpoint=EnableDisableGame.action,
                         description="Allows enabling/disabling a game. Disabling a game will prevent users from making transactions in that game."

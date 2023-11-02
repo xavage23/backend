@@ -102,6 +102,18 @@ class Games(Table, tablename="games"):
         index_method=IndexMethod.btree,
         db_column_name=None,
         secret=False,
+        help_text="If true, then users can see the transaction history for this game."
+    )
+    private_transaction_history = Boolean(
+        default=False,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+        help_text="If true, then users can see only their own transaction history for this game."
     )
     old_stocks_carry_over = Boolean(        
         default=True,
