@@ -1,7 +1,7 @@
 package main
 
 import (
-	"admintool-cli/bulkimportstock"
+	"admintool-cli/bulkstock"
 	"admintool-cli/tests"
 	"admintool-cli/users/adduser"
 	"admintool-cli/users/createmultipleusers"
@@ -44,17 +44,35 @@ func main() {
 					},
 				},
 			},
-			"bulkimportstock": {
-				Func:    bulkimportstock.BulkImportStock,
-				Help:    "Bulk import stock data",
-				Usage:   "bulkimportstock <database> <file>",
-				Example: "bulkimportstock xavage import.yaml",
-				ArgValidate: func(args []string) error {
-					if len(args) != 2 {
-						return fmt.Errorf("expected 2 argument, got %d", len(args))
-					}
+			"bulkstock": {
+				Help: "Bulk import stock data",
+				Subcommands: map[string]cmd.Command{
+					"import": {
+						Func:    bulkstock.BulkImportStock,
+						Help:    "Import stock data from a YAML file",
+						Usage:   "bulkstock import <database> <file>",
+						Example: "bulkstock import xavage output.yaml",
+						ArgValidate: func(args []string) error {
+							if len(args) != 2 {
+								return fmt.Errorf("expected 2 argument, got %d", len(args))
+							}
 
-					return nil
+							return nil
+						},
+					},
+					"showpc": {
+						Func:    bulkstock.ShowPriceChanges,
+						Help:    "Show price changes from a YAML file",
+						Usage:   "bulkstock showpc <file>",
+						Example: "bulkstock showpc output.yaml",
+						ArgValidate: func(args []string) error {
+							if len(args) != 1 {
+								return fmt.Errorf("expected 1 argument, got %d", len(args))
+							}
+
+							return nil
+						},
+					},
 				},
 			},
 		},
