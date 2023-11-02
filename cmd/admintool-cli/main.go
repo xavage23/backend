@@ -1,9 +1,10 @@
 package main
 
 import (
-	"admintool-cli/bulkimport"
+	"admintool-cli/bulkimportstock"
 	"admintool-cli/tests"
 	"admintool-cli/users/adduser"
+	"admintool-cli/users/createmultipleusers"
 	"admintool-cli/validatetable"
 	"fmt"
 
@@ -37,13 +38,17 @@ func main() {
 						Func: adduser.CreateUser,
 						Help: "Create a user",
 					},
+					"createmultiple": {
+						Func: createmultipleusers.CreateMultipleUsers,
+						Help: "Create multiple users based on a list of newline-seperated usernames ending with an EOF",
+					},
 				},
 			},
-			"bulkimport": {
-				Func:    bulkimport.BulkImport,
-				Help:    "Bulk import data",
-				Usage:   "bulkimport <database> <file>",
-				Example: "bulkimport xavage import.yaml",
+			"bulkimportstock": {
+				Func:    bulkimportstock.BulkImportStock,
+				Help:    "Bulk import stock data",
+				Usage:   "bulkimportstock <database> <file>",
+				Example: "bulkimportstock xavage import.yaml",
 				ArgValidate: func(args []string) error {
 					if len(args) != 2 {
 						return fmt.Errorf("expected 2 argument, got %d", len(args))

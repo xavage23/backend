@@ -7,7 +7,7 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	"github.com/infinitybotlist/eureka/crypto"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 )
 
 func CreateUser(progname string, args []string) {
@@ -53,14 +53,14 @@ func CreateUser(progname string, args []string) {
 
 	fmt.Println("Initial password:", initialPw)
 
-	pool, err := pgxpool.New(common.Ctx, "postgres:///xavage")
+	conn, err := pgx.Connect(common.Ctx, "postgres:///xavage")
 
 	if err != nil {
 		panic(err)
 	}
 
 	var id string
-	err = pool.QueryRow(common.Ctx, "INSERT INTO users (username, password, token) VALUES ($1, $2, $3, $4) RETURNING id", name, argon2hash, token).Scan(&id)
+	err = conn.QueryRow(common.Ctx, "INSERT INTO users (username, password, token) VALUES ($1, $2, $3) RETURNING id", name, argon2hash, token).Scan(&id)
 
 	if err != nil {
 		common.Fatal(err)

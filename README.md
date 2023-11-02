@@ -15,6 +15,12 @@ Bulls and Bears (AKA ``bb``) is a game at XAVAGE 23.
 
 Run ``make`` in ``cmd/admintool-cli`` to build the admin tool CLI. This can be used to create users etc (basically admin tooling).
 
+#### Creating multiple users
+
+``STRIP_SPECIFIC_CHARS="()" ./admintool-cli  users createmultiple``
+
+The ``STRIP_SPECIFIC_CHARS`` environment variable is used to strip specific characters from the usernames. This is useful if you have a list of usernames enclosed in brackets such as what occurred in XAVAGE23 itself
+
 ### piccolo-admin
 
 Piccolo Admin is an admin panel for Piccolo ORM. It can be used to view and edit the database. To run it, see ``cmd/piccolo-admin``.

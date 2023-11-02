@@ -1,4 +1,4 @@
-package bulkimport
+package bulkimportstock
 
 import (
 	"admintool-cli/common"
@@ -46,7 +46,7 @@ type ImportStockRatio struct {
 	PriceIndex int64   `yaml:"price_index" validate:"required"`
 }
 
-func BulkImport(progname string, args []string) {
+func BulkImportStock(progname string, args []string) {
 	dbName := args[0]
 	fileName := args[1]
 
