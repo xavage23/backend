@@ -121,7 +121,7 @@ func FillStock(ctx context.Context, stock *types.Stock, currentPriceIndex int, i
 			pp, err := GetPriorStockPrices(ctx, stock.GameID, stock.Ticker)
 
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to get prior stock prices: %w", err)
 			}
 
 			stock.PriorPrices = pp
@@ -129,15 +129,15 @@ func FillStock(ctx context.Context, stock *types.Stock, currentPriceIndex int, i
 			ratios, err := GetKnownStockRatios(ctx, stock.GameID, stock.ID, currentPriceIndex)
 
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to get known stock ratios: %w", err)
 			}
 
 			stock.KnownRatios = ratios
 		case "prior_ratios":
-			ratios, err := GetPriorStockRatios(ctx, stock.GameID, stock.ID, currentPriceIndex)
+			ratios, err := GetPriorStockRatios(ctx, stock.GameID, stock.Ticker, currentPriceIndex)
 
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to get prior stock ratios: %w", err)
 			}
 
 			stock.PriorRatios = ratios
@@ -390,6 +390,7 @@ func GetPriorStockRatios(ctx context.Context, gameId string, ticker string, curr
 	games, err := pgx.CollectRows(gameRows, pgx.RowToStructByName[types.Game])
 
 	if errors.Is(err, pgx.ErrNoRows) {
+		state.Logger.Info("No games in prior stock ratios", zap.String("game_id", gameId), zap.String("ticker", ticker))
 		err = state.Redis.Set(ctx, "stock_ratios:"+ticker, "[]", ratioCacheTime).Err()
 
 		if err != nil {
@@ -419,10 +420,25 @@ func GetPriorStockRatios(ctx context.Context, gameId string, ticker string, curr
 			}
 		}
 
-		// Fetch ratios within this game ID for this stock
-		rows, err := state.Pool.Query(ctx, "SELECT "+stockRatioCols+" FROM stock_ratios WHERE game_id = $1 AND ticker = $2 AND price_index <= $3", gameId, ticker, maxPriceIndex)
+		state.Logger.Info("Max price index", zap.Int("max_price_index", maxPriceIndex), zap.String("game_id", game.ID), zap.Int("game_number", game.GameNumber), zap.String("stock_ticker", ticker))
+
+		var stockId string
+
+		err = state.Pool.QueryRow(ctx, "SELECT id FROM stocks WHERE game_id = $1 AND ticker = $2", game.ID, ticker).Scan(&stockId)
 
 		if errors.Is(err, pgx.ErrNoRows) {
+			continue
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Fetch ratios within this game ID for this stock
+		rows, err := state.Pool.Query(ctx, "SELECT "+stockRatioCols+" FROM stock_ratios WHERE stock_id = $1 AND price_index <= $2", stockId, maxPriceIndex)
+
+		if errors.Is(err, pgx.ErrNoRows) {
+			state.Logger.Info("No rows in prior stock ratios", zap.String("game_id", game.ID), zap.String("ticker", ticker), zap.String("stock_id", stockId))
 			continue
 		}
 
@@ -433,12 +449,15 @@ func GetPriorStockRatios(ctx context.Context, gameId string, ticker string, curr
 		ratios, err := pgx.CollectRows(rows, pgx.RowToStructByName[types.StockRatio])
 
 		if errors.Is(err, pgx.ErrNoRows) {
+			state.Logger.Info("No rows in prior stock ratios", zap.String("game_id", game.ID), zap.String("ticker", ticker), zap.String("stock_id", stockId))
 			continue
 		}
 
 		if err != nil {
 			return nil, err
 		}
+
+		state.Logger.Info("Found prior stock ratios", zap.String("game_id", game.ID), zap.String("ticker", ticker), zap.String("stock_id", stockId), zap.Int("num_ratios", len(ratios)))
 
 		// Map of price index to stock ratio
 		var ratioMap = make(map[int][]types.StockRatio)
