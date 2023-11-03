@@ -24,3 +24,7 @@ The ``STRIP_SPECIFIC_CHARS`` environment variable is used to strip specific char
 ### piccolo-admin
 
 Piccolo Admin is an admin panel for Piccolo ORM. It can be used to view and edit the database. To run it, see ``cmd/piccolo-admin``.
+
+### Warning on migrations
+
+Migrations are currently known to be broken. Do not use.
