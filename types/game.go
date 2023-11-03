@@ -19,6 +19,7 @@ type Game struct {
 	Code                      string               `db:"code" json:"code" description:"The code of the game"`
 	Enabled                   pgtype.Timestamptz   `db:"enabled" json:"enabled" description:"Whether the game is enabled"`
 	TradingAllowed            bool                 `db:"trading_allowed" json:"trading_enabled" description:"Whether trading is enabled"`
+	ShortingAllowed           bool                 `db:"shorting_allowed" json:"shorting_allowed" description:"Whether shorting is allowed"`
 	TransactionHistoryAllowed bool                 `db:"transaction_history_allowed" json:"transaction_history_allowed" description:"Whether transaction history is allowed"`
 	PrivateTransactionHistory bool                 `db:"private_transaction_history" json:"private_transaction_history" description:"Whether transaction history is private/only view their own"`
 	Name                      string               `db:"name" json:"name" description:"The name of the game"`

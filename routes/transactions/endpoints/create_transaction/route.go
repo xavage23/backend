@@ -62,8 +62,9 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	// Ensure game allows trading first
 	var tradingAllowed bool
+	var shortingAllowed bool
 
-	err := state.Pool.QueryRow(d.Context, "SELECT trading_allowed FROM games WHERE id = $1", gameId).Scan(&tradingAllowed)
+	err := state.Pool.QueryRow(d.Context, "SELECT trading_allowed, shorting_allowed FROM games WHERE id = $1", gameId).Scan(&tradingAllowed, &shortingAllowed)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return uapi.HttpResponse{
@@ -97,6 +98,15 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	if !ok {
 		return hresp
+	}
+
+	if req.Amount < 0 && !shortingAllowed {
+		return uapi.HttpResponse{
+			Status: http.StatusBadRequest,
+			Json: types.ApiError{
+				Message: "Shorting is not allowed right now",
+			},
+		}
 	}
 
 	// Update here, this is a quick short-circuit point

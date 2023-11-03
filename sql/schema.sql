@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS games (
     name TEXT NOT NULL UNIQUE CHECK (name <> ''), -- Game description
     enabled TIMESTAMPTZ, -- The time the game was enabled, if null the game is disabled
     trading_allowed BOOLEAN NOT NULL DEFAULT FALSE,
+    shorting_allowed BOOLEAN NOT NULL DEFAULT FALSE,
     transaction_history_allowed BOOLEAN NOT NULL DEFAULT FALSE,
     private_transaction_history BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not the transaction history is private
     old_stocks_carry_over BOOLEAN NOT NULL DEFAULT TRUE, -- Whether or not stocks from previous games must carry over

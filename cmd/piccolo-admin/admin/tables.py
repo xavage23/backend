@@ -93,6 +93,16 @@ class Games(Table, tablename="games"):
         db_column_name=None,
         secret=False,
     )
+    shorting_allowed = Boolean(
+        default=True,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
     transaction_history_allowed = Boolean(
         default=False,
         null=False,
