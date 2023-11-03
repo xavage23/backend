@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import redis
 from admin.piccolo_app import APP_CONFIG
-from admin.tables import Games, UserTransactions, Users as UserTable
+from admin.tables import GameAllowedUsers, Games, UserTransactions, Users as UserTable
 
 from fastapi import FastAPI, Request
 from piccolo_admin.endpoints import create_admin, FormConfig
@@ -211,7 +211,7 @@ class EnableDisableGame(BaseModel):
 
         # Game enabled
         if data.enabled is not None:
-            if data.enabled:                
+            if data.enabled:
                 await Games.update(
                     enabled=datetime.datetime.now(tz=datetime.timezone.utc)
                 ).where(
@@ -230,6 +230,58 @@ class EnableDisableGame(BaseModel):
         else:
             raise ValueError("Enabled cannot be null")
                         
+class GameAddAllUsers(BaseModel):
+    game_id_or_code: str
+    remove_all: bool | None = False
+
+    @staticmethod
+    async def action(request: Request, data: "GameAddAllUsers"):
+        if not data.game_id_or_code:
+            raise ValueError("Game ID or code cannot be empty")
+
+        # Check if game id is a uuid
+        try:
+            game_id = uuid.UUID(data.game_id_or_code)
+
+            game = await Games.select(Games.id).where(
+                Games.id == game_id
+            ).first().run()
+        except ValueError:
+            # Not a UUID
+            game = await Games.select(Games.id).where(
+                Games.code == data.game_id_or_code
+            ).first().run()
+
+        if not game:
+            raise ValueError("Game ID or code does not exist")
+
+        if data.remove_all:
+            # Remove all users
+            await GameAllowedUsers.delete().where(
+                GameAllowedUsers.game_id == game["id"]
+            ).run()
+
+            return "All users removed from game."
+        else:
+            # Get all users
+            users = await UserTable.select(UserTable.id).run()
+
+            for user in users:
+                # Check if user is in game_allowed_users
+                allowed_user = await GameAllowedUsers.select(GameAllowedUsers.id).where(
+                    GameAllowedUsers.game_id == game["id"],
+                ).first().run()
+
+                if not allowed_user:
+                    # Add user to game_allowed_users
+                    await GameAllowedUsers.insert(
+                        GameAllowedUsers(
+                            game_id=game["id"],
+                            user_id=user["id"],
+                        )
+                    ).run()
+
+            return "All users added to game."
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -308,6 +360,12 @@ prior_stock_prices:{game_id}:{ticker} to clear the prior stock prices cache for 
                         pydantic_model=EnableDisableGame,
                         endpoint=EnableDisableGame.action,
                         description="Allows enabling/disabling a game. Disabling a game will prevent users from making transactions in that game."
+                    ),
+                    FormConfig(
+                        name="Game Add All Users",
+                        pydantic_model=GameAddAllUsers,
+                        endpoint=GameAddAllUsers.action,
+                        description="Add all users to a game."
                     ),
                 ],
                 # Required when running under HTTPS:

@@ -9,9 +9,17 @@ async def save_game_hook(row: Games):
     return row.enabled
 
 async def patch_game_hook(row_id, values: dict):
+    print(row_id, values)
     if values.get("enabled"):
-        values["enabled"] = datetime.datetime.now(tz=datetime.timezone.utc)
+        # Check current status of game for enabled status
+        game = await Games.objects().where(Games.id == row_id).first().run()
 
+        if game.enabled:
+            print(values["enabled"], game.enabled)
+            values["enabled"] = game.enabled
+            return values
+        else:
+            values["enabled"] = None # Ensure games aren't enabled by updates outside of form
     return values
 
 async def just_raise(*args, **kwargs):
