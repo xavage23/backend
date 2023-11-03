@@ -56,6 +56,7 @@ export interface Game {
   code: string;
   enabled: string | null /* RFC3339, nullable */;
   trading_enabled: boolean;
+  shorting_allowed: boolean;
   transaction_history_allowed: boolean;
   private_transaction_history: boolean;
   name: string;
