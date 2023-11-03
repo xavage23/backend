@@ -53,13 +53,16 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 
 		var urlIds []string
 
+		var rootStatus bool
+
 		switch auth.Type {
 		case TargetTypeUser:
 			// Check if the user exists with said API token only
 			var id pgtype.Text
 			var enabled bool
+			var root bool
 
-			err := state.Pool.QueryRow(state.Context, "SELECT id, enabled FROM users WHERE token = $1", authHeader).Scan(&id, &enabled)
+			err := state.Pool.QueryRow(state.Context, "SELECT id, enabled, root FROM users WHERE token = $1", authHeader).Scan(&id, &enabled, &root)
 
 			if err != nil {
 				state.Logger.Error("Failed to fetch user: ", zap.Error(err))
@@ -170,6 +173,7 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 				Banned:     !enabled,
 				Data:       data,
 			}
+			rootStatus = root
 			urlIds = []string{id.String}
 		}
 
@@ -177,7 +181,8 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 		if auth.URLVar != "" {
 			state.Logger.Info("Checking URL variable against user ID from auth token", zap.String("URLVar", auth.URLVar))
 			gotUserId := chi.URLParam(req, auth.URLVar)
-			if !slices.Contains(urlIds, gotUserId) {
+
+			if !slices.Contains(urlIds, gotUserId) && !rootStatus {
 				authData = uapi.AuthData{} // Remove auth data
 			}
 		}
