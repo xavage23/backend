@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import redis
 from admin.piccolo_app import APP_CONFIG
-from admin.tables import GameAllowedUsers, Games, UserTransactions, Users as UserTable
+from admin.tables import GameAllowedUsers, GameUsers, Games, UserTransactions, Users as UserTable
 
 from fastapi import FastAPI, Request
 from piccolo_admin.endpoints import create_admin, FormConfig
@@ -285,6 +285,54 @@ class GameAddAllUsers(BaseModel):
 
             return "All users added to game."
 
+class UsersNotTradedInGame(BaseModel):
+    game_id_or_code: str
+
+    @staticmethod
+    async def action(request: Request, data: "UsersNotTradedInGame"):
+        if not data.game_id_or_code:
+            raise ValueError("Game ID or code cannot be empty")
+
+        # Check if game id is a uuid
+        try:
+            game_id = uuid.UUID(data.game_id_or_code)
+
+            game = await Games.select(Games.id).where(
+                Games.id == game_id
+            ).first().run()
+        except ValueError:
+            # Not a UUID
+            game = await Games.select(Games.id).where(
+                Games.code == data.game_id_or_code
+            ).first().run()
+
+        if not game:
+            raise ValueError("Game ID or code does not exist")
+
+        # Get all game_users
+        game_users = await GameUsers.select(GameUsers.user_id).where(
+            GameUsers.game_id == game["id"]
+        ).run()
+
+        users = []
+        for game_user in game_users:
+            # Check if user has traded in game
+            user_transactions = await UserTransactions.select(UserTransactions.id).where(
+                UserTransactions.user_id == game_user["user_id"],
+                UserTransactions.game_id == game["id"],
+            ).first().run()
+
+            if not user_transactions:
+                # Get user
+                user = await UserTable.select(UserTable.id, UserTable.username).where(
+                    UserTable.id == game_user["user_id"]
+                ).first().run()
+
+                users.append(f"{user['id']} - {user['username']}")
+        
+        return ", ".join(users) + f"\n\nTotal: {len(users)}"
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("=> [startup] Connecting to the database...")
@@ -369,6 +417,12 @@ prior_stock_prices:{game_id}:{ticker} to clear the prior stock prices cache for 
                         endpoint=GameAddAllUsers.action,
                         description="Add all users to a game."
                     ),
+                    FormConfig(
+                        name="Show Users With No Trades",
+                        pydantic_model=UsersNotTradedInGame,
+                        endpoint=UsersNotTradedInGame.action,
+                        description="Show users who have not traded in a game."
+                    )
                 ],
                 # Required when running under HTTPS:
                 production=True,

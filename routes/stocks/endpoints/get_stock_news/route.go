@@ -110,7 +110,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 		var cachedStocks = make(map[[16]byte]*types.Stock)
 		for i := range news {
-			news[i].ShowAtParsed = int64(news[i].ShowAt.Microseconds/1000) + int64(news[i].ShowAt.Days*86400) + int64(news[i].ShowAt.Months*2592000)
+			news[i].ShowAtParsed = int64(news[i].ShowAt.Microseconds/(1000000)) + int64(news[i].ShowAt.Days*86400) + int64(news[i].ShowAt.Months*2592000)
 
 			if !news[i].AffectedStockID.Valid {
 				continue
