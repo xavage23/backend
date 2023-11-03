@@ -145,7 +145,7 @@ export interface News {
   affected_stock_id: string /* uuid */;
   affected_stock?: Stock;
   game_id: string;
-  show_at: any /* pgtype.Interval */;
+  show_at: number /* int64 */;
   created_at: string /* RFC3339 */;
 }
 export interface Portfolio {

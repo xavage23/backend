@@ -59,7 +59,8 @@ type News struct {
 	AffectedStockID pgtype.UUID     `db:"affected_stock_id" json:"affected_stock_id" description:"The ID of the stock affected by the news"`
 	AffectedStock   *Stock          `db:"-" json:"affected_stock" description:"The stock affected by the news, may not always be present"`
 	GameID          string          `db:"game_id" json:"game_id" description:"The ID of the game"`
-	ShowAt          pgtype.Interval `db:"show_at" json:"show_at" description:"The time at which the news should be shown"`
+	ShowAt          pgtype.Interval `db:"show_at" json:"-" description:"The unparsed time at which the news should be shown. Is never set"`
+	ShowAtParsed    int64           `db:"-" json:"show_at" description:"The time at which the news should be shown in seconds"`
 	CreatedAt       time.Time       `db:"created_at" json:"created_at" description:"The time the news was created"`
 }
 

@@ -312,7 +312,7 @@ app = FastAPI(
         Mount(
             "/admin/",
             create_admin(
-                tables=[*[ext_config.game_config], *[t for t in APP_CONFIG.table_classes if t._meta.tablename not in ("sessions", "migration", "piccolo_user", "games")]],
+                tables=[*[ext_config.game_config, ext_config.user_config], *[t for t in APP_CONFIG.table_classes if t._meta.tablename not in ("sessions", "migration", "piccolo_user", "games", "users")]],
                 forms=[
                     FormConfig(
                         name="New User",

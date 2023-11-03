@@ -80,7 +80,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 	withStocks := r.URL.Query().Get("with_stocks")
 
-	rows, err := state.Pool.Query(d.Context, "SELECT "+newsCols+" FROM news WHERE game_id = $1 AND published = true AND NOW() - $2 > show_at ORDER BY created_at DESC", gameId, gameEnabledAt)
+	rows, err := state.Pool.Query(d.Context, "SELECT "+newsCols+" FROM news WHERE game_id = $1 AND published = true AND NOW() - $2 > show_at ORDER BY show_at DESC", gameId, gameEnabledAt)
 
 	if err != nil {
 		state.Logger.Error("Failed to fetch news [db fetch]", zap.Error(err), zap.String("gameId", gameId))
@@ -110,6 +110,8 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 
 		var cachedStocks = make(map[[16]byte]*types.Stock)
 		for i := range news {
+			news[i].ShowAtParsed = int64(news[i].ShowAt.Microseconds/1000) + int64(news[i].ShowAt.Days*86400) + int64(news[i].ShowAt.Months*2592000)
+
 			if !news[i].AffectedStockID.Valid {
 				continue
 			}
