@@ -100,7 +100,15 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 		return uapi.DefaultResponse(http.StatusInternalServerError)
 	}
 
-	if !transactionHistoryAllowed {
+	var root bool
+	err = state.Pool.QueryRow(d.Context, "SELECT root FROM users WHERE id = $1", userId).Scan(&root)
+
+	if err != nil {
+		state.Logger.Error("Failed to fetch user root state", zap.Error(err), zap.String("userId", userId))
+		root = false
+	}
+
+	if !transactionHistoryAllowed && !root {
 		return uapi.HttpResponse{
 			Status: http.StatusForbidden,
 			Json:   types.ApiError{Message: "Viewing transaction history for this game is not currently allowed"},
@@ -117,7 +125,7 @@ func Route(d uapi.RouteData, r *http.Request) uapi.HttpResponse {
 	if r.URL.Query().Get("only_me") == "true" {
 		uts, err = transact.GetUserTransactions(d.Context, userId, gameId)
 	} else {
-		if privateTransactionHistory {
+		if privateTransactionHistory && !root {
 			return uapi.HttpResponse{
 				Status: http.StatusForbidden,
 				Json:   types.ApiError{Message: "You are only allowed to view your own transactions"},

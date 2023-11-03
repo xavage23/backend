@@ -249,6 +249,16 @@ class Users(Table, tablename="users"):
         db_column_name=None,
         secret=False,
     )
+    root = Boolean(
+        default=False,
+        null=False,
+        primary_key=False,
+        unique=False,
+        index=False,
+        index_method=IndexMethod.btree,
+        db_column_name=None,
+        secret=False,
+    )
     created_at = Timestamptz(
         default=TimestamptzNow(),
         null=False,

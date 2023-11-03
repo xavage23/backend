@@ -269,10 +269,12 @@ class GameAddAllUsers(BaseModel):
             for user in users:
                 # Check if user is in game_allowed_users
                 allowed_user = await GameAllowedUsers.select(GameAllowedUsers.id).where(
+                    GameAllowedUsers.user_id == user["id"],
                     GameAllowedUsers.game_id == game["id"],
                 ).first().run()
 
                 if not allowed_user:
+                    print(f"Adding user {user['id']} to game {game['id']}")
                     # Add user to game_allowed_users
                     await GameAllowedUsers.insert(
                         GameAllowedUsers(
